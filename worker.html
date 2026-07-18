@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" id="theme-meta" content="#023e8a"/>
+<link rel="manifest" href="/manifest.json"/>
+<title>Mar-A-Lavitch Staff</title>
+<style>
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --bg:#f0f9ff; --bg2:#e8f4fd; --card:#fff; --card2:#f1f5f9;
+  --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+  --blue:#0284c7; --blue-dk:#023e8a; --blue-lt:#e0f2fe;
+  --green:#16a34a; --green-lt:#dcfce7;
+  --red:#dc2626; --red-lt:#fee2e2;
+  --yellow:#d97706; --yellow-lt:#fef3c7;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 14px rgba(0,0,0,.1);
+  --r:14px; --r-sm:10px;
+}
+[data-theme="dark"] {
+  --bg:#0d1117; --bg2:#161b22; --card:#1c2333; --card2:#21262d;
+  --text:#c9d1d9; --muted:#8b949e; --border:#30363d;
+  --blue:#58a6ff; --blue-dk:#388bfd; --blue-lt:#1c2d44;
+  --green:#3fb950; --green-lt:#0f2a17;
+  --red:#f85149; --red-lt:#2a0e0e;
+  --yellow:#e3b341; --yellow-lt:#2a1f00;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.55);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{transition:background .18s;}
+body{
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;max-width:480px;margin:0 auto;
+  transition:background .18s,color .18s;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  letter-spacing:-0.011em;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+header{
+  background:var(--blue-dk);color:#fff;
+  padding:11px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:60;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+.hdr-left{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.hdr-title{font-size:1.2rem;font-weight:800;letter-spacing:-0.02em;line-height:1.1;}
+.hdr-sub{font-size:.72rem;opacity:.72;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-right{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.hdr-btn{
+  position:relative;background:rgba(255,255,255,.14);border:none;
+  border-radius:10px;padding:8px 10px;font-size:1.1rem;cursor:pointer;color:#fff;
+  line-height:1;transition:background .15s,transform .1s;
+}
+.hdr-btn:active{background:rgba(255,255,255,.3);transform:scale(.94);}
+.hdr-btn.has-unread{background:rgba(248,81,73,.22);animation:bellpulse 2s ease-in-out infinite;}
+@keyframes bellpulse{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,.5);}50%{box-shadow:0 0 0 5px rgba(248,81,73,0);}}
+.notif-badge{
+  position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;
+  border-radius:10px;background:#f5333f;color:#fff;
+  font-size:.7rem;font-weight:800;line-height:19px;text-align:center;
+  border:2px solid var(--blue-dk);display:none;
+}
+
+/* ── Screens ───────────────────────────────────────────────────────────── */
+.screen{display:none;padding:14px 14px 88px;}
+.screen.active{display:block;}
+
+/* ── Tab bar ───────────────────────────────────────────────────────────── */
+.tab-bar{
+  position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;
+  background:var(--card);border-top:1px solid var(--border);
+  display:none;z-index:60;
+  padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -2px 10px rgba(0,0,0,.06);
+}
+.tab-bar.visible{display:flex;}
+.tab-btn{
+  flex:1;padding:8px 2px 6px;border:none;background:transparent;
+  font-size:.6rem;font-weight:800;color:var(--muted);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  text-transform:uppercase;letter-spacing:.04em;transition:color .15s;
+  position:relative;
+}
+.tab-btn.active{color:var(--blue);}
+.tab-btn.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:36px;height:3px;border-radius:0 0 3px 3px;background:var(--blue);
+}
+.tab-icon{
+  font-size:1.2rem;line-height:1;width:42px;height:30px;
+  display:flex;align-items:center;justify-content:center;border-radius:14px;
+  transition:background .15s;position:relative;
+}
+.tab-btn.active .tab-icon{background:var(--blue-lt);}
+.tab-badge{
+  position:absolute;top:-3px;right:2px;min-width:16px;height:16px;padding:0 4px;
+  border-radius:8px;background:#f5333f;color:#fff;font-size:.6rem;font-weight:800;
+  line-height:16px;text-align:center;border:1.5px solid var(--card);display:none;
+}
+
+/* ── Section label ─────────────────────────────────────────────────────── */
+.lbl{
+  font-size:.65rem;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.09em;margin:18px 0 8px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.card{
+  background:var(--card);border-radius:var(--r);padding:16px;
+  margin-bottom:10px;box-shadow:var(--shadow);
+}
+
+/* ── Notification panel ────────────────────────────────────────────────── */
+.notif-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:80;
+}
+.notif-backdrop.open{display:block;}
+.notif-panel{
+  position:fixed;top:0;right:-110%;width:min(340px,96vw);height:100%;
+  background:var(--card);z-index:90;
+  display:flex;flex-direction:column;
+  transition:right .26s cubic-bezier(.4,0,.2,1);
+  box-shadow:var(--shadow-md);
+}
+.notif-panel.open{right:0;}
+.notif-hdr{
+  padding:16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.notif-hdr h3{font-size:.95rem;font-weight:800;color:var(--text);}
+.notif-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+.notif-body{flex:1;overflow-y:auto;padding:8px 12px 20px;}
+.notif-item{
+  padding:12px;border-radius:var(--r-sm);margin-bottom:6px;
+  background:var(--card2);border-left:3px solid var(--blue);
+  transition:opacity .15s;
+}
+.notif-item.unread{background:var(--blue-lt);border-left-color:var(--blue);}
+.notif-item.read{opacity:.55;}
+.notif-item-title{font-size:.83rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.notif-item-msg{font-size:.77rem;color:var(--muted);line-height:1.45;}
+.notif-item-ts{font-size:.68rem;color:var(--muted);margin-top:4px;}
+.notif-empty{text-align:center;padding:40px 16px;color:var(--muted);font-size:.88rem;}
+.notif-mark-btn{
+  display:block;width:100%;padding:11px;border:none;
+  background:none;color:var(--blue);font-size:.8rem;font-weight:700;
+  cursor:pointer;border-top:1px solid var(--border);flex-shrink:0;
+}
+
+/* ── Home unread-notification banner ───────────────────────────────────── */
+.home-notif{
+  background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--r);
+  padding:13px 15px;margin-bottom:12px;cursor:pointer;
+  box-shadow:var(--shadow);transition:transform .1s;
+}
+.home-notif:active{transform:scale(.99);}
+.home-notif-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.home-notif-head .hn-bell{font-size:1.05rem;}
+.home-notif-head .hn-title{font-size:.82rem;font-weight:800;color:var(--blue);flex:1;}
+.home-notif-head .hn-count{
+  background:#f5333f;color:#fff;font-size:.68rem;font-weight:800;
+  border-radius:10px;padding:1px 8px;
+}
+.home-notif-item{padding:6px 0;border-top:1px solid color-mix(in srgb,var(--blue) 22%,transparent);}
+.home-notif-item:first-of-type{border-top:none;}
+.hn-it-title{font-size:.82rem;font-weight:700;color:var(--text);}
+.hn-it-msg{font-size:.76rem;color:var(--muted);line-height:1.4;margin-top:1px;}
+.home-notif-more{font-size:.74rem;font-weight:700;color:var(--blue);margin-top:8px;text-align:right;}
+
+/* ── Real-time toast ───────────────────────────────────────────────────── */
+.toast{
+  position:fixed;top:-120px;left:50%;transform:translateX(-50%);
+  width:min(440px,94vw);z-index:100;
+  background:var(--card);border:1px solid var(--blue);border-left:4px solid var(--blue);
+  border-radius:var(--r);box-shadow:var(--shadow-md);
+  padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;
+  transition:top .32s cubic-bezier(.2,.8,.2,1);
+}
+.toast.show{top:calc(8px + env(safe-area-inset-top));}
+.toast-bell{font-size:1.3rem;flex-shrink:0;}
+.toast-body{flex:1;min-width:0;}
+.toast-title{font-size:.84rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toast-msg{font-size:.77rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toast-x{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+
+/* ── Shift confirm modal ───────────────────────────────────────────────── */
+.modal-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:70;
+  align-items:flex-end;justify-content:center;
+}
+.modal-backdrop.open{display:flex;}
+.modal-sheet{
+  background:var(--card);border-radius:20px 20px 0 0;
+  padding:20px 16px 32px;width:100%;max-width:480px;
+  box-shadow:0 -4px 24px rgba(0,0,0,.18);
+}
+.modal-handle{width:38px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
+.modal-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.modal-sub{font-size:.82rem;color:var(--muted);margin-bottom:14px;}
+.modal-lbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+.modal-btn-row{display:flex;gap:8px;margin-top:14px;}
+.modal-cancel{flex:1;padding:13px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.9rem;font-weight:600;cursor:pointer;color:var(--text);}
+.modal-confirm{flex:2;padding:13px;background:var(--green);border:none;border-radius:var(--r-sm);font-size:.9rem;font-weight:800;cursor:pointer;color:#fff;}
+
+/* ── Name select ───────────────────────────────────────────────────────── */
+.app-brand{text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;color:var(--blue);padding:26px 0 0;}
+.name-intro{text-align:center;padding:14px 0 18px;}
+.name-intro h2{font-size:1.2rem;font-weight:800;color:var(--text);}
+.name-intro p{font-size:.84rem;color:var(--muted);margin-top:4px;}
+.name-btn{
+  width:100%;padding:14px 16px;
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:.95rem;font-weight:600;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:12px;color:var(--text);margin-bottom:8px;
+  transition:border-color .15s,background .15s;box-shadow:var(--shadow);
+}
+.name-btn:active{background:var(--blue-lt);border-color:var(--blue);}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--blue);color:#fff;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.82rem;
+}
+
+/* ── Password ──────────────────────────────────────────────────────────── */
+.pw-wrap{padding:32px 16px;text-align:center;max-width:320px;margin:0 auto;}
+.pw-av{
+  width:68px;height:68px;border-radius:50%;background:var(--blue);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.3rem;margin:0 auto 14px;
+}
+.pw-name{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.pw-hint{font-size:.82rem;color:var(--muted);margin-bottom:22px;}
+.pw-input{
+  width:100%;padding:15px;font-size:1.1rem;letter-spacing:.14em;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  text-align:center;font-family:inherit;
+  background:var(--card);color:var(--text);
+}
+.pw-input:focus{outline:none;border-color:var(--blue);}
+.pw-err{color:var(--red);font-size:.82rem;margin-top:8px;min-height:18px;font-weight:600;}
+.pw-back{width:100%;padding:10px;background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer;margin-top:4px;}
+
+/* ── Big buttons ───────────────────────────────────────────────────────── */
+.big-btn{
+  width:100%;padding:17px;border:none;border-radius:var(--r-sm);
+  font-size:1rem;font-weight:800;cursor:pointer;
+  transition:opacity .15s,transform .1s;letter-spacing:.01em;
+}
+.big-btn:active{opacity:.86;transform:scale(.98);}
+.btn-in{background:var(--green);color:#fff;}
+.btn-out{background:var(--red);color:#fff;}
+.btn-dis{background:var(--border);color:var(--muted);cursor:not-allowed;}
+.btn-out-overlay{background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);}
+.btn-blue{background:var(--blue);color:#fff;}
+
+/* ── Home / clock card ─────────────────────────────────────────────────── */
+.clock-card{
+  border-radius:var(--r);padding:20px;margin-bottom:12px;text-align:center;
+  box-shadow:var(--shadow-md);
+}
+.clock-card.in{background:linear-gradient(135deg,#15803d,#16a34a);}
+.clock-card.out,.clock-card.done{background:var(--card);}
+.clock-icon{font-size:2.6rem;margin-bottom:6px;}
+.clock-lbl{font-size:1.05rem;font-weight:800;}
+.clock-since{font-size:.8rem;opacity:.75;margin-top:2px;margin-bottom:14px;}
+.clock-card.in .clock-lbl,.clock-card.in .clock-since{color:#fff;}
+.clock-card.out .clock-lbl,.clock-card.done .clock-lbl{color:var(--text);}
+.clock-card.out .clock-since,.clock-card.done .clock-since{color:var(--muted);}
+.greeting{font-size:1.2rem;font-weight:800;margin-bottom:2px;}
+.sub-greeting{font-size:.82rem;color:var(--muted);margin-bottom:14px;}
+
+/* ── Today shift strip ─────────────────────────────────────────────────── */
+.today-strip{
+  background:var(--blue-lt);border-left:4px solid var(--blue);
+  border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;
+}
+.today-strip .ts-time{font-weight:700;color:var(--blue);font-size:.92rem;}
+.today-strip .ts-role{font-size:.76rem;color:var(--muted);margin-top:3px;}
+
+/* ── Schedule – week strip ─────────────────────────────────────────────── */
+.week-strip{
+  display:flex;gap:4px;padding:4px;
+  background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+  margin-bottom:10px;
+}
+.sched-legend{display:flex;flex-wrap:wrap;gap:5px 12px;margin-bottom:12px;padding:0 2px;}
+.sched-legend .lg{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted);font-weight:600;}
+.sched-legend .lg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+.day-pip{
+  flex:1;padding:8px 2px;border-radius:10px;text-align:center;cursor:pointer;
+  transition:background .15s;
+}
+.day-pip.today{background:var(--blue);color:#fff;}
+.day-pip.has-shift:not(.today){background:var(--blue-lt);color:var(--blue);}
+.day-pip.sel:not(.today){background:var(--border);}
+.dp-name{font-size:.57rem;font-weight:700;text-transform:uppercase;}
+.dp-num{font-size:.88rem;font-weight:800;margin-top:1px;}
+.dp-dot{width:4px;height:4px;border-radius:50%;background:currentColor;margin:3px auto 0;opacity:.65;}
+
+/* ── Agenda items ──────────────────────────────────────────────────────── */
+.agenda{
+  background:var(--card);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:8px;box-shadow:var(--shadow);
+  border-left:4px solid var(--blue);
+  display:flex;align-items:flex-start;gap:11px;
+}
+.agenda.today{border-left-color:var(--green);}
+.agenda.past{opacity:.52;border-left-color:var(--border);}
+.agenda-date{flex-shrink:0;text-align:center;min-width:38px;}
+.adn{font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--muted);}
+.add{font-size:1.25rem;font-weight:800;color:var(--blue);line-height:1;}
+.agenda.today .add{color:var(--green);}
+.agenda.past .add{color:var(--muted);}
+.agenda-info{flex:1;}
+.agenda-time{font-size:.88rem;font-weight:700;color:var(--text);}
+.agenda-role{
+  display:inline-block;margin-top:5px;font-size:.7rem;font-weight:700;
+  padding:2px 9px;border-radius:20px;background:var(--blue-lt);color:var(--blue);
+}
+.agenda.today .agenda-role{background:var(--green-lt);color:var(--green);}
+.agenda-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+.confirm-btn{
+  padding:7px 11px;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;
+  transition:background .15s;
+}
+.confirm-btn.pending{background:var(--card2);color:var(--muted);border:1.5px solid var(--border);}
+.confirm-btn.done{background:var(--green-lt);color:var(--green);border:1.5px solid var(--green);}
+.agenda-confirmed-note{font-size:.65rem;color:var(--green);margin-top:2px;max-width:90px;text-align:right;font-style:italic;}
+
+/* ── Request cards ─────────────────────────────────────────────────────── */
+.req-card{
+  background:var(--card);border-radius:var(--r-sm);
+  padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);
+}
+.req-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.req-type{font-size:.83rem;font-weight:700;color:var(--blue);}
+.req-status{font-size:.75rem;font-weight:600;}
+.req-status.pending{color:var(--yellow);}
+.req-status.approved{color:var(--green);}
+.req-status.denied{color:var(--red);}
+.req-detail{font-size:.78rem;color:var(--muted);}
+
+/* ── Board ─────────────────────────────────────────────────────────────── */
+.status-banner{
+  border-radius:var(--r);padding:13px 16px;margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;font-weight:800;font-size:.92rem;
+}
+.status-banner.open{background:var(--green-lt);color:var(--green);}
+.status-banner.closed{background:var(--red-lt);color:var(--red);}
+.status-banner.limited{background:var(--yellow-lt);color:var(--yellow);}
+.status-icon{font-size:1.4rem;flex-shrink:0;}
+.ann-card{
+  background:var(--card);border-radius:var(--r-sm);
+  padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);
+  border-left:4px solid var(--blue);
+}
+.ann-card.warn{border-left-color:var(--yellow);}
+.ann-card.urgent{border-left-color:var(--red);background:var(--red-lt);}
+.ann-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.ann-ttl{font-weight:700;font-size:.88rem;color:var(--text);}
+.ann-dt{font-size:.68rem;color:var(--muted);}
+.ann-body{font-size:.83rem;color:var(--muted);line-height:1.5;}
+.res-card{
+  background:var(--card);border-radius:var(--r-sm);
+  padding:12px 14px;margin-bottom:7px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;
+}
+.res-icon{font-size:1.25rem;flex-shrink:0;}
+.res-ttl{font-weight:700;font-size:.83rem;color:var(--text);}
+.res-desc{font-size:.73rem;color:var(--muted);margin-top:2px;}
+.res-arr{margin-left:auto;color:var(--muted);font-size:.9rem;}
+
+/* ── Wizard ─────────────────────────────────────────────────────────────── */
+.prog-bar{height:3px;background:var(--border);border-radius:3px;margin-bottom:18px;}
+.prog-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .3s;}
+.step-title{font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.step-sub{font-size:.81rem;color:var(--muted);margin-bottom:18px;}
+.q-card{background:var(--card);border-radius:var(--r-sm);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.q-lbl{font-size:.81rem;font-weight:700;color:var(--text);margin-bottom:10px;}
+.radio-group{display:flex;flex-direction:column;gap:7px;}
+.radio-opt{
+  display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  cursor:pointer;font-size:.86rem;font-weight:500;color:var(--text);
+  transition:border-color .15s,background .15s;
+}
+.radio-opt input{display:none;}
+.radio-opt.selected{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);}
+.radio-opt.sel-warn{border-color:var(--yellow);background:var(--yellow-lt);color:var(--yellow);}
+.radio-opt.sel-fail{border-color:var(--red);background:var(--red-lt);color:var(--red);}
+.rdot{
+  width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.radio-opt.selected .rdot{background:var(--blue);border-color:var(--blue);}
+.radio-opt.sel-warn .rdot{background:var(--yellow);border-color:var(--yellow);}
+.radio-opt.sel-fail .rdot{background:var(--red);border-color:var(--red);}
+.rdot::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;display:none;}
+.radio-opt.selected .rdot::after,.radio-opt.sel-warn .rdot::after,.radio-opt.sel-fail .rdot::after{display:block;}
+.check-opt{
+  display:flex;align-items:center;gap:12px;padding:13px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  cursor:pointer;font-size:.86rem;font-weight:500;color:var(--text);
+  margin-bottom:7px;transition:border-color .15s,background .15s;
+}
+.check-opt.checked{border-color:var(--green);background:var(--green-lt);color:var(--green);}
+.cbox{
+  width:22px;height:22px;border-radius:6px;border:2px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.88rem;
+}
+.check-opt.checked .cbox{background:var(--green);border-color:var(--green);color:#fff;}
+.clbl{flex:1;}
+.creq{font-size:.67rem;color:var(--muted);}
+textarea,.form-inp{
+  width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:.9rem;font-family:inherit;background:var(--card);color:var(--text);
+}
+textarea{resize:none;min-height:76px;}
+textarea:focus,.form-inp:focus{outline:none;border-color:var(--blue);}
+select.form-inp{cursor:pointer;}
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.btn-next{
+  flex:2;padding:15px;background:var(--blue);color:#fff;
+  border:none;border-radius:var(--r-sm);font-size:.92rem;font-weight:700;cursor:pointer;
+  transition:opacity .15s;
+}
+.btn-next:active{opacity:.85;}
+.btn-next:disabled{background:var(--muted);cursor:not-allowed;}
+.btn-back{
+  flex:1;padding:15px;background:var(--card2);color:var(--text);
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:.92rem;font-weight:600;cursor:pointer;
+}
+
+/* ── Photo ─────────────────────────────────────────────────────────────── */
+.photo-area{
+  background:var(--card2);border:2px dashed var(--border);border-radius:var(--r);
+  padding:26px 20px;text-align:center;cursor:pointer;margin-bottom:10px;
+}
+.photo-area.has-photo{border-style:solid;border-color:var(--green);padding:0;overflow:hidden;}
+.photo-area img{width:100%;display:block;border-radius:var(--r);}
+.photo-area p{color:var(--muted);font-size:.85rem;margin-top:6px;}
+.photo-icon{font-size:2rem;margin-bottom:5px;}
+#photo-input{display:none;}
+.btn-retake{
+  width:100%;padding:11px;background:var(--card2);
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text);margin-top:6px;
+}
+
+/* ── Result ─────────────────────────────────────────────────────────────── */
+.result-card{background:var(--card);border-radius:var(--r);padding:28px 20px;text-align:center;box-shadow:var(--shadow-md);}
+.res-icon{font-size:3.4rem;margin-bottom:10px;}
+.res-title{font-size:1.25rem;font-weight:800;margin-bottom:6px;}
+.res-sub{font-size:.86rem;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.flag-list{text-align:left;background:var(--yellow-lt);border:1px solid var(--yellow);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:12px;}
+.flag-list li{font-size:.81rem;color:var(--yellow);padding:3px 0;}
+
+/* ── Clock-in flagged-conditions banner (non-blocking) ─────────────────── */
+.clockin-flags{background:var(--yellow-lt);border:1px solid var(--yellow);border-radius:var(--r);padding:13px 15px;margin-bottom:12px;}
+.clockin-flags .cf-head{font-weight:800;color:var(--yellow);font-size:.9rem;margin-bottom:2px;}
+.clockin-flags .cf-sub{font-size:.77rem;color:var(--muted);margin-bottom:8px;line-height:1.45;}
+.clockin-flags ul{margin:0 0 10px;padding-left:18px;}
+.clockin-flags li{font-size:.82rem;color:var(--text);padding:2px 0;}
+.clockin-flags button{background:var(--yellow);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;}
+
+/* ── Breaks ────────────────────────────────────────────────────────────── */
+.break-card{background:var(--card);border-radius:var(--r-sm);padding:13px 15px;margin-bottom:8px;box-shadow:var(--shadow);border-left:4px solid #a855f7;display:flex;align-items:center;gap:12px;}
+.break-card.active{background:#faf5ff;border-left-color:#a855f7;}
+[data-theme="dark"] .break-card.active{background:#2a1f3a;}
+.break-card.done{opacity:.55;border-left-color:var(--green);}
+.break-emoji{font-size:1.5rem;flex-shrink:0;}
+.break-info{flex:1;min-width:0;}
+.break-title{font-weight:700;font-size:.9rem;color:var(--text);}
+.break-meta{font-size:.76rem;color:var(--muted);margin-top:2px;}
+.break-timer{font-size:1.05rem;font-weight:800;color:#9333ea;font-variant-numeric:tabular-nums;}
+.break-btn{flex-shrink:0;padding:10px 16px;border:none;border-radius:10px;font-size:.84rem;font-weight:800;cursor:pointer;transition:opacity .15s;}
+.break-btn:active{opacity:.85;}
+.break-btn.start{background:#a855f7;color:#fff;}
+.break-btn.end{background:var(--red);color:#fff;}
+.btn-home{
+  width:100%;padding:15px;background:var(--blue-dk);color:#fff;
+  border:none;border-radius:var(--r-sm);font-size:.92rem;font-weight:700;cursor:pointer;margin-top:8px;
+}
+
+/* ── Chemical log ──────────────────────────────────────────────────────── */
+.chem-type-row{display:flex;gap:8px;margin-bottom:14px;}
+.chem-type-btn{
+  flex:1;padding:13px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:.86rem;font-weight:700;background:var(--card);cursor:pointer;
+  color:var(--muted);transition:border-color .15s,background .15s;
+}
+.chem-type-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);}
+.chem-field{margin-bottom:12px;}
+.chem-field label{
+  display:block;font-size:.68rem;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;
+}
+.chem-field input{
+  width:100%;padding:15px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:1.35rem;font-weight:700;text-align:center;
+  background:var(--card);color:var(--text);
+}
+.chem-field input:focus{outline:none;border-color:var(--blue);}
+.chem-range{font-size:.68rem;color:var(--muted);margin-top:3px;text-align:center;}
+.chem-submit{
+  width:100%;padding:17px;border:none;border-radius:var(--r-sm);
+  background:var(--blue);color:#fff;font-size:.95rem;font-weight:800;
+  cursor:pointer;margin-top:6px;
+}
+.chem-submit:disabled{background:var(--muted);cursor:not-allowed;}
+.chem-result{display:none;text-align:center;padding:22px 14px;}
+.chem-result .big-icon{font-size:2.8rem;margin-bottom:8px;}
+.chem-result h2{font-size:1.1rem;font-weight:800;margin-bottom:5px;}
+.chem-result p{font-size:.82rem;color:var(--muted);margin-bottom:16px;}
+.btn-again{width:100%;padding:13px;background:var(--blue-dk);color:#fff;border:none;border-radius:var(--r-sm);font-size:.88rem;font-weight:700;cursor:pointer;}
+
+/* ── Request form ──────────────────────────────────────────────────────── */
+.req-form-card{background:var(--card);border-radius:var(--r-sm);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.req-form-lbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+.empty{text-align:center;padding:22px 16px;color:var(--muted);font-size:.86rem;}
+.logout-link{display:block;text-align:center;margin-top:18px;background:none;border:none;color:var(--muted);font-size:.78rem;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="hdr-left">
+    <div class="hdr-title" id="hdr-title">Home</div>
+    <div class="hdr-sub" id="hdr-sub"></div>
+  </div>
+  <div class="hdr-right">
+    <button class="hdr-btn" id="notif-btn" onclick="openNotif()" aria-label="Notifications">
+      🔔<span class="notif-badge" id="notif-badge">0</span>
+    </button>
+    <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+  </div>
+</header>
+
+<!-- ── Real-time toast ──────────────────────────────────────────────────── -->
+<div class="toast" id="toast" onclick="openNotif();hideToast()">
+  <span class="toast-bell">🔔</span>
+  <div class="toast-body">
+    <div class="toast-title" id="toast-title"></div>
+    <div class="toast-msg" id="toast-msg"></div>
+  </div>
+  <button class="toast-x" onclick="event.stopPropagation();hideToast()">✕</button>
+</div>
+
+<!-- ── Notification panel ─────────────────────────────────────────────── -->
+<div class="notif-backdrop" id="notif-backdrop" onclick="closeNotif()"></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-hdr">
+    <h3>🔔 Notifications</h3>
+    <button class="notif-close" onclick="closeNotif()">✕</button>
+  </div>
+  <div class="notif-body" id="notif-list"></div>
+  <button class="notif-mark-btn" onclick="markAllRead()">Mark all as read</button>
+</div>
+
+<!-- ── Shift confirm modal ────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirm-modal-title"></div>
+    <div class="modal-sub" id="confirm-modal-sub"></div>
+    <div class="modal-lbl">Pre-shift note for manager (optional)</div>
+    <textarea id="confirm-note" placeholder="Questions, updates, anything your manager should know…" rows="3"></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="modal-confirm" onclick="submitConfirm()">Confirm Shift ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tab bar ────────────────────────────────────────────────────────── -->
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-btn" id="tab-board" onclick="showTab('board')">
+    <span class="tab-icon">📋</span>Board
+  </button>
+  <button class="tab-btn active" id="tab-home" onclick="showTab('home')">
+    <span class="tab-icon">🏠<span class="tab-badge" id="tab-notif-badge">0</span></span>Home
+  </button>
+  <button class="tab-btn" id="tab-schedule" onclick="showTab('schedule')">
+    <span class="tab-icon">📅</span>Schedule
+  </button>
+  <button class="tab-btn" id="tab-chemicals" onclick="showTab('chemicals')">
+    <span class="tab-icon">🧪</span>Chemicals
+  </button>
+</div>
+
+<!-- ── NAME SELECT ────────────────────────────────────────────────────── -->
+<div class="screen active" id="screen-name">
+  <div class="app-brand">🏊 Mar-A-Lavitch Staff</div>
+  <div class="name-intro">
+    <h2>Who are you?</h2>
+    <p>Select your name to sign in</p>
+  </div>
+  <div id="name-list"><p class="empty">Loading…</p></div>
+</div>
+
+<!-- ── PASSWORD ───────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-password">
+  <div class="pw-wrap">
+    <div class="pw-av" id="pw-avatar"></div>
+    <p class="pw-name" id="pw-name-lbl"></p>
+    <p class="pw-hint">Enter your password to sign in</p>
+    <input class="pw-input" type="password" id="pw-input" placeholder="••••••••"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')submitPassword()"/>
+    <p class="pw-err" id="pw-err"></p>
+    <button class="big-btn btn-in" style="margin-top:12px" onclick="submitPassword()">Sign In →</button>
+    <button class="pw-back" onclick="backToNames()">← Back to name list</button>
+  </div>
+</div>
+
+<!-- ── POOL PICKER ────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-pool">
+  <div class="name-intro">
+    <h2>Which pool?</h2>
+    <p>Select the pool you're working at</p>
+  </div>
+  <div id="pool-list"><p class="empty">Loading…</p></div>
+</div>
+
+<!-- ── BOARD ──────────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-board">
+  <div id="board-status"></div>
+  <p class="lbl">Announcements</p>
+  <div id="board-anns"><p class="empty">Loading…</p></div>
+  <p class="lbl">Resources</p>
+  <div id="board-res"></div>
+</div>
+
+<!-- ── HOME ──────────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-home">
+  <p class="greeting" id="home-greeting"></p>
+  <p class="sub-greeting" id="home-date"></p>
+  <div id="home-notif"></div>
+  <div id="home-clock"></div>
+  <div id="home-flag-banner"></div>
+  <div id="home-breaks"></div>
+  <div id="home-today"></div>
+  <button class="logout-link" onclick="switchPool()" style="margin-top:18px;color:var(--blue)">🏊 Switch pool</button>
+  <button class="logout-link" onclick="logout()" style="margin-top:8px">Switch worker ↩</button>
+</div>
+
+<!-- ── SCHEDULE ───────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-schedule">
+  <p class="lbl" style="margin-top:4px">This Week</p>
+  <div class="week-strip" id="week-strip"></div>
+  <div id="sched-legend" class="sched-legend"></div>
+  <div id="day-detail"></div>
+  <p class="lbl" style="margin-top:2px">Upcoming Shifts</p>
+  <div id="upcoming-shifts"></div>
+  <p class="lbl">My Requests</p>
+  <div id="sched-requests"></div>
+  <div class="btn-row" style="margin-top:6px">
+    <button class="btn-next" onclick="showRequestScreen('shift')">📅 Request Shift</button>
+    <button class="btn-next" style="background:var(--yellow)" onclick="showRequestScreen('dayoff')">🚫 Day Off</button>
+  </div>
+</div>
+
+<!-- ── CLOCK IN WIZARD ────────────────────────────────────────────────── -->
+<div class="screen" id="screen-clockin">
+  <div class="prog-bar"><div class="prog-fill" id="ci-prog"></div></div>
+  <div id="ci-steps"></div>
+</div>
+
+<!-- ── CLOCK OUT WIZARD ───────────────────────────────────────────────── -->
+<div class="screen" id="screen-clockout">
+  <div class="prog-bar"><div class="prog-fill" id="co-prog"></div></div>
+  <div id="co-steps"></div>
+</div>
+
+<!-- ── CHEMICALS ──────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-chemicals">
+  <p class="greeting" style="margin-bottom:3px">Chemical Reading</p>
+  <p class="sub-greeting" id="chem-sub"></p>
+  <div id="chem-form">
+    <div class="chem-type-row">
+      <button class="chem-type-btn active" id="ctype-hourly" onclick="setChemType('hourly')">Hourly Check</button>
+      <button class="chem-type-btn" id="ctype-daily" onclick="setChemType('daily')">Daily Check</button>
+    </div>
+    <div class="card">
+      <div class="chem-field">
+        <label>Free Chlorine (ppm)</label>
+        <input type="number" id="cl-val" inputmode="decimal" step="0.1" min="0" max="20" placeholder="0.0"/>
+        <div class="chem-range">Target: 1.0 – 3.0 ppm</div>
+      </div>
+      <div class="chem-field">
+        <label>pH</label>
+        <input type="number" id="ph-val" inputmode="decimal" step="0.1" min="6" max="9" placeholder="0.0"/>
+        <div class="chem-range">Target: 7.2 – 7.8</div>
+      </div>
+      <div class="chem-field">
+        <label>Combined Chlorine (ppm) — optional</label>
+        <input type="number" id="ccl-val" inputmode="decimal" step="0.1" min="0" max="5" placeholder="—"/>
+        <div class="chem-range">Target: &lt; 0.5 ppm</div>
+      </div>
+      <div class="chem-field">
+        <label>Notes — optional</label>
+        <input type="text" id="chem-notes-val" placeholder="Any observations…"
+          style="font-size:.92rem;text-align:left;font-weight:400"/>
+      </div>
+    </div>
+    <button class="chem-submit" onclick="submitChem()">Submit Reading</button>
+  </div>
+  <div class="chem-result" id="chem-result">
+    <div class="big-icon" id="chem-res-icon"></div>
+    <h2 id="chem-res-title"></h2>
+    <p id="chem-res-body"></p>
+    <button class="btn-again" onclick="resetChem()">Log Another Reading</button>
+  </div>
+</div>
+
+<!-- ── REQUEST SCREEN ─────────────────────────────────────────────────── -->
+<div class="screen" id="screen-request">
+  <div class="chem-type-row" style="margin-bottom:16px">
+    <button class="chem-type-btn active" id="reqtab-shift" onclick="setReqType('shift')">📅 Shift Request</button>
+    <button class="chem-type-btn" id="reqtab-dayoff" onclick="setReqType('dayoff')">🚫 Day Off</button>
+  </div>
+
+  <div id="req-shift-form">
+    <p class="step-title">Request a Shift</p>
+    <p class="step-sub" style="margin-bottom:14px">Submit your availability to management.</p>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Date</div>
+      <input type="date" id="req-date" class="form-inp"/>
+    </div>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Start Time</div>
+      <input type="time" id="req-start" class="form-inp"/>
+    </div>
+    <div class="req-form-card">
+      <div class="req-form-lbl">End Time</div>
+      <input type="time" id="req-end" class="form-inp"/>
+    </div>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Preferred Role</div>
+      <select id="req-role" class="form-inp">
+        <option>Lifeguard</option><option>Head Guard</option><option>Manager</option>
+        <option>Staffer</option><option>Cashier</option><option>Maintenance</option>
+      </select>
+    </div>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Notes (optional)</div>
+      <textarea id="req-notes" placeholder="Anything management should know…"></textarea>
+    </div>
+  </div>
+
+  <div id="req-dayoff-form" style="display:none">
+    <p class="step-title">Request a Day Off</p>
+    <p class="step-sub" style="margin-bottom:14px">Let management know when you're unavailable.</p>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Date</div>
+      <input type="date" id="req-do-date" class="form-inp"/>
+    </div>
+    <div class="req-form-card">
+      <div class="req-form-lbl">Reason (optional)</div>
+      <textarea id="req-do-reason" placeholder="Personal, appointment, etc.…"></textarea>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-top:8px">
+    <button class="btn-back" onclick="cancelRequest()">← Cancel</button>
+    <button class="btn-next" id="req-submit-btn" onclick="submitRequest()">Submit →</button>
+  </div>
+</div>
+
+<!-- ── RESULT ─────────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card"></div>
+</div>
+
+<script>
+// ══ Theme ═════════════════════════════════════════════════════════════════
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'dark' ? '☀️' : '🌙';
+  document.getElementById('theme-meta').content = t === 'dark' ? '#0d1117' : '#023e8a';
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('pm_theme', next);
+  applyTheme(next);
+}
+// Apply saved or OS theme immediately
+(function() {
+  const saved = localStorage.getItem('pm_theme') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(saved);
+})();
+
+// ══ State ══════════════════════════════════════════════════════════════════
+let empId = null, empName = null;
+let isClockedIn = false;
+let pendingEmpId = null, pendingEmpName = null;
+let reqType = 'shift';
+let ciAnswers = {}, coAnswers = {}, coPhoto = null;
+let ciStep = 0, coStep = 0;
+let chemType = 'hourly';
+let selectedDay = null;  // for week strip
+let pendingConfirmShift = null; // shift being confirmed
+let activePoolId = null, activePoolName = '';
+let postClockInFlags = null; // start-of-shift issues to show once on home
+const urlPool = new URLSearchParams(location.search).get('pool'); // QR deep-link
+const CI_TOTAL = 3, CO_TOTAL = 3;
+
+// ── Pool scoping helpers ────────────────────────────────────────────────────
+function inPool(item) { return Number(item.poolId) === Number(activePoolId); }
+function setPool(id, name) {
+  activePoolId = Number(id);
+  activePoolName = name || '';
+  localStorage.setItem('pm_worker_pool', String(activePoolId));
+  _knownNotifIds = null;  // don't toast pre-existing notifications after a context switch
+  tick();
+}
+async function afterLogin() {
+  const data = await get();
+  const pools = data.pools || [];
+  if (!pools.length) { activePoolId = null; loadHome(); return; }
+  const saved = Number(localStorage.getItem('pm_worker_pool'));
+  const suggested = urlPool ? Number(urlPool) : null;
+  let pick = null;
+  if (suggested && pools.some(p => Number(p.id) === suggested)) pick = suggested;
+  else if (saved && pools.some(p => Number(p.id) === saved)) pick = saved;
+  else if (pools.length === 1) pick = Number(pools[0].id);
+  if (pick != null) {
+    const pl = pools.find(p => Number(p.id) === pick);
+    setPool(pick, pl ? pl.name : '');
+    loadHome();
+  } else {
+    showPoolPicker(pools);
+  }
+}
+function showPoolPicker(pools) {
+  const el = document.getElementById('pool-list');
+  const statusDot = { open:'🟢', limited:'🟡', closed:'🔴' };
+  el.innerHTML = pools.map(p => `
+    <button class="name-btn" onclick="pickPool(${p.id},'${(p.name||'').replace(/'/g,"\\'")}')">
+      <div class="avatar">${statusDot[p.status] || '🏊'}</div>
+      <div style="flex:1">
+        <div style="font-weight:700">${p.name}</div>
+        ${p.address ? `<div style="font-size:.72rem;color:var(--muted);margin-top:2px">📍 ${p.address}</div>` : ''}
+      </div>
+    </button>`).join('');
+  show('pool');
+}
+function pickPool(id, name) { setPool(id, name); loadHome(); }
+function switchPool() {
+  // Re-open the picker so staff can move to another pool
+  get().then(data => showPoolPicker(data.pools || []));
+}
+
+// ══ API ════════════════════════════════════════════════════════════════════
+const get  = async () => (await fetch('/api/data')).json();
+const post = async (path, body) =>
+  (await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+
+// ══ Utilities ══════════════════════════════════════════════════════════════
+// Local-date formatter — must match the server's local date (NOT UTC), otherwise
+// evening clock-ins land on the wrong day and show "Not Clocked In".
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function today() { return ymd(new Date()); }
+function fmtTime(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+}
+function dayLabel(ds) {
+  const t = today();
+  if (ds === t) return 'Today';
+  const diff = Math.round((new Date(ds+'T12:00:00') - new Date(t+'T12:00:00')) / 86400000);
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  return new Date(ds+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+}
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+// Role → accent color (works on light & dark; white text reads on all of these)
+const ROLE_COLORS = {
+  'Pool Owner':  '#9333ea',
+  'Owner':       '#4f46e5',
+  'Manager':     '#2563eb',
+  'Head Guard':  '#0891b2',
+  'Lifeguard':   '#16a34a',
+  'Staffer':     '#475569',
+  'Cashier':     '#d97706',
+  'Maintenance': '#6b7280',
+};
+function rc(role) { return ROLE_COLORS[role] || '#2563eb'; }
+function tick() {
+  const t = new Date().toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit'});
+  const sub = document.getElementById('hdr-sub');
+  if (sub) sub.textContent = activePoolName ? `📍 ${activePoolName} · ${t}` : t;
+}
+setInterval(tick, 1000); tick();
+
+// ══ Screen management & wayfinding ═══════════════════════════════════════════
+const TAB_SCREENS = ['board','home','schedule','chemicals'];
+const SCREEN_TITLES = {
+  board:'Board', home:'Home', schedule:'My Schedule', chemicals:'Log Chemicals',
+  clockin:'Clock In', clockout:'Clock Out', request:'Request Time', result:'All Set',
+  name:'Sign In', password:'Sign In', pool:'Choose Pool',
+};
+function setHeader(id) {
+  const el = document.getElementById('hdr-title');
+  if (el && SCREEN_TITLES[id] != null) el.textContent = SCREEN_TITLES[id];
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0, 0);
+  setHeader(id);
+  const tabBar = document.getElementById('tab-bar');
+  const isTab = TAB_SCREENS.includes(id);
+  tabBar.classList.toggle('visible', isTab);
+  if (isTab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const t = document.getElementById('tab-'+id);
+    if (t) t.classList.add('active');
+  }
+}
+
+function showTab(name) {
+  if (name === 'chemicals' && !isClockedIn) {
+    alert('You must be clocked in to log chemical readings.');
+    return;
+  }
+  show(name);
+  if (name === 'board') renderBoard();
+  if (name === 'schedule') renderScheduleTab();
+  if (name === 'chemicals') {
+    document.getElementById('chem-sub').textContent = `Logged as ${empName}`;
+    resetChem();
+  }
+}
+
+// ══ Notifications ══════════════════════════════════════════════════════════
+function openNotif() {
+  document.getElementById('notif-panel').classList.add('open');
+  document.getElementById('notif-backdrop').classList.add('open');
+}
+function closeNotif() {
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('notif-backdrop').classList.remove('open');
+}
+async function markAllRead() {
+  if (!empId) return;
+  await post('/api/notification/read', {empId});
+  await renderNotifications();
+}
+
+// ── Real-time toast ──────────────────────────────────────────────────────────
+let _knownNotifIds = null;   // null until the first render (so we don't toast on load)
+let _toastTimer = null;
+function showToast(n, count) {
+  document.getElementById('toast-title').textContent = (count > 1 ? `${count} new · ` : '') + (n.title || 'Notification');
+  document.getElementById('toast-msg').textContent = n.message || '';
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(hideToast, 6500);
+}
+function hideToast() { document.getElementById('toast').classList.remove('show'); }
+
+function updateNotifBadges(count) {
+  const label = count > 9 ? '9+' : String(count);
+  const hb = document.getElementById('notif-badge');
+  const tb = document.getElementById('tab-notif-badge');
+  const btn = document.getElementById('notif-btn');
+  if (hb) { hb.textContent = label; hb.style.display = count ? 'block' : 'none'; }
+  if (tb) { tb.textContent = label; tb.style.display = count ? 'block' : 'none'; }
+  if (btn) btn.classList.toggle('has-unread', count > 0);
+}
+
+function renderHomeNotif(unread) {
+  const el = document.getElementById('home-notif');
+  if (!el) return;
+  if (!unread.length) { el.innerHTML = ''; return; }
+  const top = unread.slice(0, 2);
+  el.innerHTML = `
+    <div class="home-notif" onclick="openNotif()">
+      <div class="home-notif-head">
+        <span class="hn-bell">🔔</span>
+        <span class="hn-title">New notification${unread.length > 1 ? 's' : ''}</span>
+        <span class="hn-count">${unread.length}</span>
+      </div>
+      ${top.map(n => `<div class="home-notif-item">
+        <div class="hn-it-title">${n.title || 'Notification'}</div>
+        <div class="hn-it-msg">${n.message || ''}</div>
+      </div>`).join('')}
+      <div class="home-notif-more">View ${unread.length > top.length ? `all ${unread.length}` : ''} →</div>
+    </div>`;
+}
+
+// Show a device notification via the service worker (works on Android, where
+// `new Notification()` throws), falling back to the direct constructor. Never throws.
+function firePush(n) {
+  const title = n.title || 'Maralavitch Pool';
+  const opts = { body: n.message, tag: String(n.id), icon: '/favicon.ico' };
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        try { reg.showNotification(title, opts); } catch (e) {}
+      }).catch(() => {});
+      return;
+    }
+  } catch (e) {}
+  try { new Notification(title, opts); } catch (e) {}
+}
+
+async function renderNotifications() {
+  if (!empId) return;
+  const data = await get();
+  const notifs = (data.notifications || [])
+    .filter(n => String(n.empId) === String(empId) && (n.poolId == null || inPool(n)))
+    .sort((a,b) => (b.id||0) - (a.id||0));
+  const unread = notifs.filter(n => !n.read);
+
+  // Count badges (header bell + Home tab) and unread glow
+  updateNotifBadges(unread.length);
+  // Surface unread on the Home screen so they're seen without opening the panel
+  renderHomeNotif(unread);
+
+  // In-app toast when NEW notifications arrive (not on first load)
+  const idSet = new Set(notifs.map(n => n.id));
+  if (_knownNotifIds !== null) {
+    const fresh = unread.filter(n => !_knownNotifIds.has(n.id));
+    if (fresh.length) showToast(fresh[0], fresh.length);
+  }
+  _knownNotifIds = idSet;
+
+  // Request browser notification permission on first unread
+  try {
+    if (unread.length && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  } catch (e) { /* never let permission prompt break the flow */ }
+  // Fire device push for newest unread (only once each — tracked in sessionStorage)
+  try {
+    if (unread.length && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const seenKey = 'pm_seen_notifs';
+      const seen = new Set(JSON.parse(sessionStorage.getItem(seenKey) || '[]'));
+      const fresh = unread.filter(n => !seen.has(n.id));
+      fresh.slice(0, 3).forEach(n => { firePush(n); seen.add(n.id); });
+      sessionStorage.setItem(seenKey, JSON.stringify([...seen]));
+    }
+  } catch (e) { /* notifications are best-effort — never block rendering */ }
+
+  // Render list
+  const el = document.getElementById('notif-list');
+  if (!notifs.length) {
+    el.innerHTML = '<div class="notif-empty">No notifications yet.<br><span style="font-size:.75rem">You\'ll see shift updates here.</span></div>';
+    return;
+  }
+  el.innerHTML = notifs.map(n => `
+    <div class="notif-item ${n.read ? 'read' : 'unread'}">
+      <div class="notif-item-title">${n.title || 'Notification'}</div>
+      <div class="notif-item-msg">${n.message}</div>
+      <div class="notif-item-ts">${n.ts || ''}</div>
+    </div>`).join('');
+}
+
+// ══ Board ═══════════════════════════════════════════════════════════════════
+async function renderBoard() {
+  const data = await get();
+  // Pool status — from the selected pool
+  const pool = (data.pools || []).find(p => Number(p.id) === Number(activePoolId));
+  const s = (pool && pool.status) || data.pool_status || 'open';
+  const cfg = {
+    open:   {icon:'🟢', label:'Pool is Open',       cls:'open'},
+    closed: {icon:'🔴', label:'Pool is Closed',      cls:'closed'},
+    limited:{icon:'🟡', label:'Limited Operations',  cls:'limited'},
+  };
+  const sc = cfg[s] || cfg.open;
+  const poolTag = pool ? `<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;text-align:center">📍 ${pool.name}</div>` : '';
+  document.getElementById('board-status').innerHTML =
+    poolTag + `<div class="status-banner ${sc.cls}"><span class="status-icon">${sc.icon}</span>${sc.label}</div>`;
+
+  // Announcements (this pool only)
+  const anns = (data.announcements || []).filter(inPool);
+  const aEl = document.getElementById('board-anns');
+  aEl.innerHTML = anns.length ? anns.map(a => `
+    <div class="ann-card ${a.priority==='urgent'?'urgent':a.priority==='warn'?'warn':''}">
+      <div class="ann-head">
+        <span class="ann-ttl">${a.priority==='urgent'?'🚨 ':''}${a.title}</span>
+        <span class="ann-dt">${a.posted?a.posted.slice(5,16):''}</span>
+      </div>
+      <div class="ann-body">${a.body}</div>
+    </div>`).join('')
+    : '<p class="empty">No announcements yet.</p>';
+
+  // Resources (this pool only)
+  const res = (data.resources || []).filter(inPool);
+  const rEl = document.getElementById('board-res');
+  const icons = {procedure:'📄',contact:'📞',link:'🔗',info:'ℹ️',schedule:'📅'};
+  rEl.innerHTML = res.length ? res.map(r => {
+    const ic = icons[r.type] || '📌';
+    const inner = `<span class="res-icon">${ic}</span>
+      <div><div class="res-ttl">${r.title}</div>${r.desc?`<div class="res-desc">${r.desc}</div>`:''}</div>
+      ${r.url?'<span class="res-arr">→</span>':''}`;
+    return r.url
+      ? `<a class="res-card" href="${r.url}" target="_blank">${inner}</a>`
+      : `<div class="res-card">${inner}</div>`;
+  }).join('') : '<p class="empty">No resources posted.</p>';
+}
+
+// ══ Home ════════════════════════════════════════════════════════════════════
+async function loadHome() {
+  const data = await get();
+  document.getElementById('home-greeting').textContent = `Hi, ${empName.split(' ')[0]}! 👋`;
+  document.getElementById('home-date').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  // Clock status (this pool only)
+  const todayPunches = data.punches.filter(p => String(p.empId)===String(empId) && p.date===today() && inPool(p));
+  const openPunch = todayPunches.find(p => !p.out);
+  isClockedIn = !!openPunch;
+
+  const clockEl = document.getElementById('home-clock');
+  if (openPunch) {
+    clockEl.innerHTML = `
+      <div class="clock-card in">
+        <div class="clock-icon">🟢</div>
+        <div class="clock-lbl">Clocked In</div>
+        <div class="clock-since">Since ${fmtTime(openPunch.in)}</div>
+        <button class="big-btn btn-out-overlay" onclick="startClockOut()">Clock Out</button>
+      </div>`;
+  } else if (todayPunches.length) {
+    const last = todayPunches[todayPunches.length-1];
+    const totalHrs = todayPunches.reduce((sum,p) => sum + (p.hours || 0), 0);
+    const nShifts = todayPunches.length;
+    clockEl.innerHTML = `
+      <div class="clock-card out">
+        <div class="clock-icon">⚪</div>
+        <div class="clock-lbl">Clocked Out</div>
+        <div class="clock-since">Last: ${fmtTime(last.in)} – ${fmtTime(last.out)} · ${nShifts} shift${nShifts>1?'s':''} today · ${totalHrs.toFixed(2)} hrs</div>
+        <button class="big-btn btn-in" onclick="startClockIn()" style="margin-top:12px">Clock Back In</button>
+      </div>`;
+  } else {
+    clockEl.innerHTML = `
+      <div class="clock-card out">
+        <div class="clock-icon">⭕</div>
+        <div class="clock-lbl">Not Clocked In</div>
+        <div class="clock-since">Tap to start your shift</div>
+        <button class="big-btn btn-in" onclick="startClockIn()" style="margin-top:12px">Clock In</button>
+      </div>`;
+  }
+
+  // Start-of-shift issues banner (shown once after clocking in with imperfect conditions)
+  const flagBanner = document.getElementById('home-flag-banner');
+  if (flagBanner) {
+    if (postClockInFlags && postClockInFlags.length) {
+      flagBanner.innerHTML = `
+        <div class="clockin-flags">
+          <div class="cf-head">⚠️ Reported to management</div>
+          <div class="cf-sub">You're clocked in. These start-of-shift issues were sent to your manager:</div>
+          <ul>${postClockInFlags.map(f => `<li>${f}</li>`).join('')}</ul>
+          <button onclick="document.getElementById('home-flag-banner').innerHTML=''">Got it</button>
+        </div>`;
+      postClockInFlags = null;
+    } else {
+      flagBanner.innerHTML = '';
+    }
+  }
+
+  // My breaks for today
+  renderHomeBreaks(data);
+
+  // Today's shift summary (this pool only)
+  const todayShifts = data.shifts.filter(s => String(s.empId)===String(empId) && s.date===today() && inPool(s));
+  const todayEl = document.getElementById('home-today');
+  if (todayShifts.length) {
+    todayEl.innerHTML = `<p class="lbl">Today's Shift</p>` +
+      todayShifts.map(s => {
+        const a = rc(s.role);
+        return `
+        <div class="today-strip" style="border-left-color:${a}">
+          <div class="ts-time" style="color:${a}">${fmtTime(s.start)} – ${fmtTime(s.end)}</div>
+          <div class="ts-role"><span style="display:inline-block;background:${a};color:#fff;border-radius:20px;padding:1px 9px;font-weight:700;font-size:.72rem">${s.role}</span></div>
+        </div>`;
+      }).join('');
+  } else {
+    todayEl.innerHTML = '';
+  }
+
+  try { await renderNotifications(); } catch (e) { /* never block the home screen */ }
+  show('home');
+  document.getElementById('tab-bar').classList.add('visible');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-home').classList.add('active');
+}
+
+// ══ Breaks ══════════════════════════════════════════════════════════════════
+let breakTimer = null;
+function minutesBetween(startHHMM) {
+  const [h, m] = startHHMM.split(':').map(Number);
+  const start = new Date(); start.setHours(h, m, 0, 0);
+  return Math.max(0, Math.floor((Date.now() - start) / 1000));
+}
+function fmtElapsed(startHHMM) {
+  const sec = minutesBetween(startHHMM);
+  return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+}
+function renderHomeBreaks(data) {
+  const el = document.getElementById('home-breaks');
+  if (!el) return;
+  if (breakTimer) { clearInterval(breakTimer); breakTimer = null; }
+  const myBreaks = (data.breaks || [])
+    .filter(b => String(b.empId)===String(empId) && b.date===today() && inPool(b))
+    .sort((a,b) => (a.start||'').localeCompare(b.start||''));
+  if (!myBreaks.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<p class="lbl">My Break${myBreaks.length>1?'s':''}</p>` + myBreaks.map(b => {
+    if (b.status === 'active') {
+      return `<div class="break-card active">
+        <div class="break-emoji">☕</div>
+        <div class="break-info">
+          <div class="break-title">On Break · <span class="break-timer" id="brk-timer-${b.id}">0:00</span></div>
+          <div class="break-meta">Started ${fmtTime(b.startedAt)} · ${b.duration} min allotted</div>
+        </div>
+        <button class="break-btn end" onclick="endBreak(${b.id})">End Break</button>
+      </div>`;
+    }
+    if (b.status === 'completed') {
+      return `<div class="break-card done">
+        <div class="break-emoji">✓</div>
+        <div class="break-info">
+          <div class="break-title">Break taken</div>
+          <div class="break-meta">${fmtTime(b.startedAt)}–${fmtTime(b.endedAt)}${b.actualMinutes!=null?` · ${b.actualMinutes} min`:''}</div>
+        </div>
+      </div>`;
+    }
+    return `<div class="break-card">
+      <div class="break-emoji">☕</div>
+      <div class="break-info">
+        <div class="break-title">${b.duration}-minute break</div>
+        <div class="break-meta">${b.start ? 'Scheduled for ' + fmtTime(b.start) : 'Take it anytime during your shift'}</div>
+      </div>
+      <button class="break-btn start" onclick="startBreak(${b.id})">Start Break</button>
+    </div>`;
+  }).join('');
+
+  // Live timer for an active break
+  const active = myBreaks.find(b => b.status === 'active' && b.startedAt);
+  if (active) {
+    const upd = () => {
+      const t = document.getElementById('brk-timer-' + active.id);
+      if (t) t.textContent = fmtElapsed(active.startedAt);
+    };
+    upd();
+    breakTimer = setInterval(upd, 1000);
+  }
+}
+async function startBreak(id) {
+  await post('/api/break/start', { id, empId });
+  await loadHome();
+}
+async function endBreak(id) {
+  await post('/api/break/end', { id, empId });
+  await loadHome();
+}
+
+// ══ Schedule tab ════════════════════════════════════════════════════════════
+function getWeekDates(offsetWeeks) {
+  const d = new Date(), day = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - day + 1 + offsetWeeks * 7);
+  return Array.from({length:7}, (_,i) => {
+    const dd = new Date(mon); dd.setDate(mon.getDate()+i);
+    return ymd(dd);
+  });
+}
+
+async function renderScheduleTab() {
+  const data = await get();
+  const t = today();
+  const dates = getWeekDates(0);
+  const dayLetters = ['M','T','W','T','F','S','S'];
+
+  // Week strip
+  const strip = document.getElementById('week-strip');
+  strip.innerHTML = dates.map((d,i) => {
+    const dayNum = new Date(d+'T12:00:00').getUTCDate();
+    const dayShiftsHere = data.shifts.filter(s => String(s.empId)===String(empId) && s.date===d && inPool(s));
+    const hasShift = dayShiftsHere.length > 0;
+    const dotColor = hasShift ? rc(dayShiftsHere[0].role) : null;
+    const isToday = d === t;
+    const isSel = d === (selectedDay || t);
+    let cls = isToday ? 'today' : isSel ? 'sel' : hasShift ? 'has-shift' : '';
+    return `<div class="day-pip ${cls}" onclick="selectDay('${d}')">
+      <div class="dp-name">${dayLetters[i]}</div>
+      <div class="dp-num">${dayNum}</div>
+      ${hasShift ? `<div class="dp-dot" style="background:${isToday?'#fff':dotColor};opacity:1"></div>` : '<div style="height:7px"></div>'}
+    </div>`;
+  }).join('');
+
+  // Selected day detail
+  const selDate = selectedDay || t;
+  const dayShifts = data.shifts.filter(s => String(s.empId)===String(empId) && s.date===selDate && inPool(s));
+  const confirmations = data.shift_confirmations || {};
+  const detailEl = document.getElementById('day-detail');
+  if (dayShifts.length) {
+    detailEl.innerHTML =
+      `<p style="font-size:.78rem;font-weight:700;color:var(--blue);margin:8px 0 6px">${dayLabel(selDate)}</p>` +
+      dayShifts.map(s => renderAgendaItem(s, confirmations, t)).join('');
+  } else {
+    detailEl.innerHTML = `<p class="empty" style="padding:10px 0">${dayLabel(selDate)} — No shift scheduled</p>`;
+  }
+
+  // Color legend — show the distinct roles among the worker's shifts
+  const legendEl = document.getElementById('sched-legend');
+  if (legendEl) {
+    const myRoles = [...new Set(data.shifts
+      .filter(s => String(s.empId)===String(empId) && inPool(s))
+      .map(s => s.role))];
+    legendEl.innerHTML = myRoles.length > 1
+      ? myRoles.map(r => `<span class="lg"><span class="lg-dot" style="background:${rc(r)}"></span>${r}</span>`).join('')
+      : '';
+  }
+
+  // Upcoming shifts (next 14 days, this pool only)
+  const upcoming = data.shifts
+    .filter(s => String(s.empId)===String(empId) && s.date >= t && inPool(s))
+    .sort((a,b) => a.date.localeCompare(b.date))
+    .slice(0, 12);
+  const upEl = document.getElementById('upcoming-shifts');
+  upEl.innerHTML = upcoming.length
+    ? upcoming.map(s => renderAgendaItem(s, confirmations, t)).join('')
+    : '<p class="empty">No upcoming shifts scheduled.</p>';
+
+  // Requests
+  renderMyRequests(data);
+}
+
+function renderAgendaItem(s, confirmations, t) {
+  const isToday = s.date === t;
+  const isPast = s.date < t;
+  const cls = isToday ? 'today' : isPast ? 'past' : '';
+  const dateObj = new Date(s.date+'T12:00:00');
+  const dayName = dateObj.toLocaleDateString('en-US',{weekday:'short'});
+  const dayNum = dateObj.getUTCDate();
+
+  const key = `${empId}_${s.id}`;
+  const conf = confirmations[key];
+  let confirmHtml = '';
+  if (!isPast) {
+    if (conf && conf.confirmed) {
+      confirmHtml = `<div class="confirm-btn done">✓ Confirmed</div>
+        ${conf.note ? `<div class="agenda-confirmed-note">"${conf.note}"</div>` : ''}`;
+    } else {
+      confirmHtml = `<button class="confirm-btn pending" onclick="openConfirmModal(${s.id},'${s.date}','${fmtTime(s.start)} – ${fmtTime(s.end)}','${s.role}')">Confirm</button>`;
+    }
+  }
+
+  const accent = rc(s.role);
+  return `
+    <div class="agenda ${cls}" style="border-left-color:${accent}">
+      <div class="agenda-date">
+        <div class="adn">${dayName}</div>
+        <div class="add" style="${isToday?'':'color:'+accent}">${dayNum}</div>
+      </div>
+      <div class="agenda-info">
+        <div class="agenda-time">${fmtTime(s.start)} – ${fmtTime(s.end)}</div>
+        ${isToday ? '<div style="font-size:.72rem;color:var(--green);font-weight:700;margin-top:2px">● Today</div>' : (!isPast ? `<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${dayLabel(s.date)}</div>` : '')}
+        <span class="agenda-role" style="background:${accent};color:#fff">${s.role}</span>
+      </div>
+      <div class="agenda-actions">${confirmHtml}</div>
+    </div>`;
+}
+
+function selectDay(d) {
+  selectedDay = d;
+  renderScheduleTab();
+}
+
+// Confirm shift modal
+function openConfirmModal(shiftId, date, timeStr, role) {
+  pendingConfirmShift = {shiftId, date};
+  document.getElementById('confirm-modal-title').textContent = `Confirm: ${dayLabel(date)}`;
+  document.getElementById('confirm-modal-sub').textContent = `${timeStr} · ${role}`;
+  document.getElementById('confirm-note').value = '';
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  pendingConfirmShift = null;
+}
+async function submitConfirm() {
+  if (!pendingConfirmShift) return;
+  const note = document.getElementById('confirm-note').value.trim();
+  await post('/api/shift/confirm', {empId, shiftId: pendingConfirmShift.shiftId, note});
+  closeConfirmModal();
+  renderScheduleTab();
+}
+
+function renderMyRequests(data) {
+  const myReqs = (data.shift_requests || []).filter(r => String(r.empId) === String(empId) && inPool(r));
+  const el = document.getElementById('sched-requests');
+  if (!el) return;
+  if (!myReqs.length) { el.innerHTML = '<p class="empty">No requests submitted yet.</p>'; return; }
+  const si = {pending:'🟡',approved:'✅',denied:'❌'};
+  el.innerHTML = myReqs.slice(0,6).map(r => `
+    <div class="req-card">
+      <div class="req-head">
+        <span class="req-type">${r.type==='shift'?'📅 Shift':'🚫 Day Off'}</span>
+        <span class="req-status ${r.status||'pending'}">${si[r.status]||'🟡'} ${((r.status||'pending')[0]).toUpperCase()+(r.status||'pending').slice(1)}</span>
+      </div>
+      <div class="req-detail">
+        ${dayLabel(r.date)}${r.type==='shift'?` · ${fmtTime(r.start)}–${fmtTime(r.end)} · ${r.role}`:''}
+        ${r.reason?`<br><em>"${r.reason}"</em>`:''}
+        ${r.notes?`<br><em>"${r.notes}"</em>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ══ Name list ════════════════════════════════════════════════════════════════
+async function loadNameList() {
+  const data = await get();
+  const list = document.getElementById('name-list');
+  if (!data.employees || !data.employees.length) {
+    list.innerHTML = '<p class="empty">No employees set up yet. Ask your manager.</p>';
+    return;
+  }
+  list.innerHTML = data.employees.map(e => `
+    <button class="name-btn" onclick="selectWorker('${e.id}','${e.name.replace(/'/g,"\\'")}',${!!e.has_password})">
+      <div class="avatar">${initials(e.name)}</div>
+      <div style="flex:1">
+        <div style="font-weight:700">${e.name}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">${e.role||''}</div>
+      </div>
+      ${e.has_password ? '<span style="font-size:.85rem;color:var(--muted)">🔒</span>' : ''}
+    </button>`).join('');
+}
+
+async function selectWorker(id, name, hasPassword) {
+  if (hasPassword) {
+    pendingEmpId = String(id); pendingEmpName = name;
+    document.getElementById('pw-avatar').textContent = initials(name);
+    document.getElementById('pw-name-lbl').textContent = name;
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-err').textContent = '';
+    show('password');
+    setTimeout(() => document.getElementById('pw-input').focus(), 160);
+  } else {
+    empId = String(id); empName = name;
+    localStorage.setItem('pm_worker_id', empId);
+    localStorage.setItem('pm_worker_name', empName);
+    await afterLogin();
+  }
+}
+
+async function submitPassword() {
+  const pw = document.getElementById('pw-input').value;
+  if (!pw) { document.getElementById('pw-err').textContent = 'Please enter your password.'; return; }
+  document.getElementById('pw-err').textContent = '';
+  const btn = document.querySelector('#screen-password .big-btn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const res = await post('/api/auth', {empId: pendingEmpId, password: pw});
+    if (res.ok) {
+      empId = pendingEmpId; empName = pendingEmpName;
+      localStorage.setItem('pm_worker_id', empId);
+      localStorage.setItem('pm_worker_name', empName);
+      await afterLogin();
+    } else {
+      document.getElementById('pw-err').textContent = '❌ Incorrect password. Try again.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  } catch(e) {
+    document.getElementById('pw-err').textContent = 'Connection error. Are you on the pool WiFi?';
+  }
+  btn.disabled = false; btn.textContent = 'Sign In →';
+}
+function backToNames() { pendingEmpId = null; pendingEmpName = null; show('name'); }
+function logout() {
+  localStorage.removeItem('pm_worker_id');
+  localStorage.removeItem('pm_worker_name');
+  empId = null; empName = null; isClockedIn = false;
+  activePoolName = ''; _knownNotifIds = null;
+  updateNotifBadges(0);
+  document.getElementById('home-notif').innerHTML = '';
+  document.getElementById('tab-bar').classList.remove('visible');
+  show('name');
+  loadNameList();
+}
+
+// ══ Chemical log ═════════════════════════════════════════════════════════════
+function setChemType(t) {
+  chemType = t;
+  document.getElementById('ctype-hourly').classList.toggle('active', t==='hourly');
+  document.getElementById('ctype-daily').classList.toggle('active', t==='daily');
+}
+async function submitChem() {
+  const cl = parseFloat(document.getElementById('cl-val').value);
+  const ph = parseFloat(document.getElementById('ph-val').value);
+  if (isNaN(cl) || isNaN(ph)) { alert('Enter Chlorine and pH values.'); return; }
+  const cclRaw = document.getElementById('ccl-val').value;
+  const ccl = cclRaw !== '' ? parseFloat(cclRaw) : null;
+  const btn = document.querySelector('.chem-submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  const now = new Date();
+  try {
+    await post('/api/chemical', {
+      date: ymd(now),
+      time: now.toTimeString().slice(0,5),
+      type: chemType, cl, ph, ccl, by: empName,
+      poolId: Number(activePoolId),
+      notes: document.getElementById('chem-notes-val').value
+    });
+    const clOk=cl>=1&&cl<=3, phOk=ph>=7.2&&ph<=7.8, cclOk=ccl===null||ccl<0.5;
+    const status=(clOk&&phOk&&cclOk)?'pass':((cl<0.5||ph<7.0||ph>8.0)?'fail':'warn');
+    const icons={pass:'✅',warn:'⚠️',fail:'🚨'};
+    const titles={pass:'All Good!',warn:'Attention Needed',fail:'Out of Range'};
+    const bodies={
+      pass:`Cl ${cl} ppm · pH ${ph} — within normal range.`,
+      warn:`Cl ${cl} ppm · pH ${ph} — value(s) outside target. Notify your supervisor.`,
+      fail:`Cl ${cl} ppm · pH ${ph} — critical reading. Notify manager immediately.`
+    };
+    document.getElementById('chem-form').style.display='none';
+    const resEl=document.getElementById('chem-result');
+    resEl.style.display='block';
+    document.getElementById('chem-res-icon').textContent=icons[status];
+    document.getElementById('chem-res-title').textContent=titles[status];
+    document.getElementById('chem-res-title').style.color=
+      status==='pass'?'var(--green)':status==='fail'?'var(--red)':'var(--yellow)';
+    document.getElementById('chem-res-body').textContent=bodies[status];
+  } catch(e) { alert('Could not submit. Make sure you are on the pool WiFi.'); }
+  btn.disabled=false; btn.textContent='Submit Reading';
+}
+function resetChem() {
+  document.getElementById('chem-form').style.display='block';
+  document.getElementById('chem-result').style.display='none';
+  ['cl-val','ph-val','ccl-val','chem-notes-val'].forEach(id => document.getElementById(id).value='');
+}
+
+// ══ Clock In Wizard ══════════════════════════════════════════════════════════
+const CI_STEPS = [
+  {
+    title:'Pool Conditions', sub:'Assess the water before your shift begins.',
+    questions:[
+      {key:'water_clarity',label:'Water clarity',opts:[
+        {val:'clear',label:'Clear & clean',cls:'selected'},
+        {val:'hazy',label:'Slightly hazy or cloudy',cls:'sel-warn'},
+        {val:'murky',label:'Murky / cannot see bottom',cls:'sel-fail'},
+      ]},
+      {key:'debris',label:'Debris visible in pool',opts:[
+        {val:'none',label:'None',cls:'selected'},
+        {val:'minor',label:'Minor (leaves, small items)',cls:'sel-warn'},
+        {val:'significant',label:'Significant debris',cls:'sel-fail'},
+      ]},
+    ]
+  },
+  {
+    title:'Deck & Safety Equipment',
+    sub:'Confirm the deck is safe and all equipment is in place.',
+    questions:[
+      {key:'deck',label:'Pool deck condition',opts:[
+        {val:'clean',label:'Clean & dry',cls:'selected'},
+        {val:'wet',label:'Wet / minor spills',cls:'sel-warn'},
+        {val:'hazard',label:'Hazard present',cls:'sel-fail'},
+      ]},
+      {key:'life_ring',label:'Life ring on deck',opts:[
+        {val:'yes',label:'Present',cls:'selected'},
+        {val:'no',label:'Missing',cls:'sel-fail'},
+      ]},
+      {key:'reach_pole',label:'Reaching pole on deck',opts:[
+        {val:'yes',label:'Present',cls:'selected'},
+        {val:'no',label:'Missing',cls:'sel-fail'},
+      ]},
+      {key:'first_aid',label:'First aid kit',opts:[
+        {val:'stocked',label:'Present & stocked',cls:'selected'},
+        {val:'low',label:'Present, needs restock',cls:'sel-warn'},
+        {val:'missing',label:'Missing',cls:'sel-fail'},
+      ]},
+    ]
+  },
+  {
+    title:'Notes & Confirm', sub:'Flag any issues, then clock in.',
+    isNotes:true, confirmLabel:'Clock In Now ✓', confirmClass:'btn-in',
+  }
+];
+
+function startClockIn() { ciAnswers={}; ciStep=0; renderCIStep(); show('clockin'); }
+function renderCIStep() {
+  const s = CI_STEPS[ciStep];
+  document.getElementById('ci-prog').style.width=`${((ciStep+1)/CI_TOTAL)*100}%`;
+  const el = document.getElementById('ci-steps');
+  if (s.isNotes) {
+    el.innerHTML=`
+      <div class="step-title">${s.title}</div><div class="step-sub">${s.sub}</div>
+      <div class="q-card">
+        <div class="q-lbl">Additional notes (optional)</div>
+        <textarea id="ci-notes" placeholder="Anything the manager should know…" rows="4"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="ciBack()">← Back</button>
+        <button class="btn-next ${s.confirmClass}" onclick="ciConfirm()">${s.confirmLabel}</button>
+      </div>`;
+    return;
+  }
+  let html=`<div class="step-title">${s.title}</div><div class="step-sub">${s.sub}</div>`;
+  s.questions.forEach(q => {
+    html+=`<div class="q-card"><div class="q-lbl">${q.label}</div><div class="radio-group">`;
+    q.opts.forEach(o => {
+      const sel=ciAnswers[q.key]===o.val;
+      html+=`<label class="radio-opt ${sel?o.cls:''}" data-key="${q.key}" data-val="${o.val}" data-cls="${o.cls}">
+        <div class="rdot"></div>${o.label}</label>`;
+    });
+    html+=`</div></div>`;
+  });
+  html+=`<div class="btn-row">
+    ${ciStep===0?'':`<button class="btn-back" onclick="ciBack()">← Back</button>`}
+    <button class="btn-next" id="ci-next-btn" onclick="ciNext()">Next →</button>
+  </div>`;
+  el.innerHTML=html;
+  el.querySelectorAll('.radio-opt').forEach(opt => {
+    opt.addEventListener('click',()=>{
+      const {key,val,cls}=opt.dataset;
+      ciAnswers[key]=val;
+      el.querySelectorAll(`.radio-opt[data-key="${key}"]`).forEach(o=>o.classList.remove('selected','sel-warn','sel-fail'));
+      opt.classList.add(cls);
+      updateCINext();
+    });
+  });
+  updateCINext();
+}
+function updateCINext() {
+  const s=CI_STEPS[ciStep]; if(s.isNotes)return;
+  const btn=document.getElementById('ci-next-btn'); if(!btn)return;
+  btn.disabled=!s.questions.every(q=>ciAnswers[q.key]);
+}
+function ciNext(){if(!CI_STEPS[ciStep].isNotes&&!CI_STEPS[ciStep].questions.every(q=>ciAnswers[q.key]))return;ciStep++;renderCIStep();}
+function ciBack(){ciStep=Math.max(0,ciStep-1);renderCIStep();}
+async function ciConfirm(){
+  ciAnswers.ci_notes=document.getElementById('ci-notes')?.value||'';
+  const flags=[];
+  if(ciAnswers.water_clarity&&ciAnswers.water_clarity!=='clear') flags.push('Water clarity: '+ciAnswers.water_clarity);
+  if(ciAnswers.debris&&ciAnswers.debris!=='none') flags.push('Debris in pool: '+ciAnswers.debris);
+  if(ciAnswers.deck&&ciAnswers.deck!=='clean') flags.push('Deck condition: '+ciAnswers.deck);
+  if(ciAnswers.life_ring==='no') flags.push('Life ring MISSING');
+  if(ciAnswers.reach_pole==='no') flags.push('Reach pole MISSING');
+  if(ciAnswers.first_aid&&ciAnswers.first_aid!=='stocked') flags.push('First aid kit: '+ciAnswers.first_aid);
+  const res=await post('/api/punch/in',{empId,empName,answers:ciAnswers,flags,poolId:Number(activePoolId)});
+  if(res.error){alert(res.error);return;}
+  isClockedIn = true;
+  // Always clock in and go straight home — even if conditions weren't perfect.
+  // Any flagged issues are recorded for management and shown as a dismissible
+  // note on the home screen (no blocking popup).
+  postClockInFlags = flags.length ? flags : null;
+  await loadHome();
+}
+
+// ══ Clock Out Wizard ═══════════════════════════════════════════════════════
+const CHECKLIST=[
+  {key:'trash',    label:'Trash emptied',             required:true},
+  {key:'skimmers', label:'Skimmers cleaned',           required:true},
+  {key:'deck_clean',label:'Pool deck swept & cleaned', required:true},
+  {key:'equipment',label:'Equipment secured & stored', required:true},
+  {key:'chemicals',label:'Chemical readings logged',   required:false},
+  {key:'restrooms',label:'Restrooms checked',          required:false},
+];
+function startClockOut(){coAnswers={};coPhoto=null;coStep=0;renderCOStep();show('clockout');}
+function renderCOStep(){
+  document.getElementById('co-prog').style.width=`${((coStep+1)/CO_TOTAL)*100}%`;
+  const el=document.getElementById('co-steps');
+  if(coStep===0){
+    let html=`<div class="step-title">Cleanup Checklist</div>
+      <div class="step-sub">Check off tasks before clocking out.</div>`;
+    CHECKLIST.forEach(item=>{
+      const chk=coAnswers[item.key];
+      html+=`<div class="check-opt ${chk?'checked':''}" onclick="toggleCheck('${item.key}')">
+        <div class="cbox">${chk?'✓':''}</div>
+        <div class="clbl">${item.label}${item.required?'<div class="creq">Required</div>':''}</div>
+      </div>`;
+    });
+    html+=`<div class="q-card" style="margin-top:4px">
+      <div class="q-lbl" style="margin-bottom:7px">Handoff notes (optional)</div>
+      <textarea id="co-notes" placeholder="Anything for the next shift…">${coAnswers.co_notes||''}</textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="show('home');loadHome()">← Cancel</button>
+      <button class="btn-next" onclick="coNext()">Next →</button>
+    </div>`;
+    el.innerHTML=html;
+  } else if(coStep===1){
+    el.innerHTML=`
+      <div class="step-title">Pool Deck Photo</div>
+      <div class="step-sub">Take a photo of the pool deck to complete clock-out.</div>
+      <div class="photo-area ${coPhoto?'has-photo':''}" onclick="document.getElementById('photo-input').click()">
+        ${coPhoto
+          ?`<img src="${coPhoto}" alt="deck"/>`
+          :`<div class="photo-icon">📷</div><p>Tap to open camera</p><p style="font-size:.72rem;margin-top:3px">Rear camera recommended</p>`}
+      </div>
+      ${coPhoto?'<button class="btn-retake" onclick="document.getElementById(\'photo-input\').click()">Retake Photo</button>':''}
+      <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handlePhoto(this)"/>
+      <div class="btn-row">
+        <button class="btn-back" onclick="coBack()">← Back</button>
+        <button class="btn-next" ${!coPhoto?'disabled':''} onclick="coNext()">Next →</button>
+      </div>`;
+  } else if(coStep===2){
+    const missing=CHECKLIST.filter(i=>i.required&&!coAnswers[i.key]).map(i=>i.label);
+    el.innerHTML=`
+      <div class="step-title">Confirm Clock Out</div>
+      <div class="step-sub">Review your end-of-shift report.</div>
+      ${missing.length?`<div class="flag-list" style="margin-bottom:12px">
+        <strong style="font-size:.82rem">⚠️ Unchecked required items:</strong>
+        <ul style="margin-top:5px;padding-left:16px">${missing.map(m=>`<li>${m}</li>`).join('')}</ul>
+      </div>`:''}
+      <div class="q-card">
+        <div class="q-lbl" style="margin-bottom:7px">Photo preview</div>
+        <img src="${coPhoto}" style="width:100%;border-radius:8px"/>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="coBack()">← Back</button>
+        <button class="btn-next btn-out" onclick="coConfirm()">Clock Out ✓</button>
+      </div>`;
+  }
+}
+function toggleCheck(key){coAnswers[key]=!coAnswers[key];renderCOStep();}
+function coNext(){if(coStep===0)coAnswers.co_notes=document.getElementById('co-notes')?.value||'';coStep++;renderCOStep();}
+function coBack(){coStep=Math.max(0,coStep-1);renderCOStep();}
+function handlePhoto(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      coPhoto=canvas.toDataURL('image/jpeg',.82);renderCOStep();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+async function coConfirm(){
+  coAnswers.co_notes=document.getElementById('co-notes')?.value||coAnswers.co_notes||'';
+  let photoFilename=null;
+  if(coPhoto){const r=await post('/api/photo',{data:coPhoto});photoFilename=r.filename||null;}
+  const missing=CHECKLIST.filter(i=>i.required&&!coAnswers[i.key]).map(i=>i.label);
+  const flags=missing.map(m=>`Not completed: ${m}`);
+  const res=await post('/api/punch/out',{empId,empName,answers:coAnswers,photo:photoFilename,flags,poolId:Number(activePoolId)});
+  if(res.error){alert(res.error);return;}
+  showResult('out',flags,res.punch);
+}
+
+// ══ Result screen ═══════════════════════════════════════════════════════════
+function showResult(type,flags,punch){
+  const card=document.getElementById('result-card');
+  const isIn=type==='in', hasFlags=flags.length>0;
+  let flagsHtml='';
+  if(hasFlags){
+    flagsHtml=`<div class="flag-list"><strong>⚠️ Flagged:</strong>
+      <ul style="margin-top:5px;padding-left:16px">${flags.map(f=>`<li>${f}</li>`).join('')}</ul></div>`;
+  }
+  card.innerHTML=`
+    <div class="res-icon">${isIn?(hasFlags?'⚠️':'✅'):(hasFlags?'⚠️':'🏁')}</div>
+    <div class="res-title" style="color:${hasFlags?'var(--yellow)':'var(--green)'}">${
+      isIn?(hasFlags?'Clocked In — Issues Flagged':'Clocked In!'):(hasFlags?'Clocked Out — Issues Flagged':'Shift Complete!')
+    }</div>
+    <div class="res-sub">${
+      isIn?`Shift started at <strong>${fmtTime(punch.in)}</strong>.${hasFlags?' Manager notified.':''}`
+         :`Shift ended at <strong>${fmtTime(punch.out)}</strong> — ${punch.hours} hrs.${hasFlags?' Manager notified.':''}`
+    }</div>
+    ${flagsHtml}
+    <button class="btn-home" onclick="loadHome()">← Back to Home</button>`;
+  show('result');
+}
+
+// ══ Request screen ══════════════════════════════════════════════════════════
+function showRequestScreen(type) {
+  reqType=type||'shift';
+  const d=today();
+  document.getElementById('req-date').value=d;
+  document.getElementById('req-do-date').value=d;
+  document.getElementById('req-notes').value='';
+  document.getElementById('req-do-reason').value='';
+  setReqType(reqType);
+  show('request');
+}
+function setReqType(type){
+  reqType=type;
+  document.getElementById('reqtab-shift').classList.toggle('active',type==='shift');
+  document.getElementById('reqtab-dayoff').classList.toggle('active',type==='dayoff');
+  document.getElementById('req-shift-form').style.display=type==='shift'?'block':'none';
+  document.getElementById('req-dayoff-form').style.display=type==='dayoff'?'block':'none';
+}
+function cancelRequest(){
+  show('schedule');
+  document.getElementById('tab-bar').classList.add('visible');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-schedule').classList.add('active');
+}
+async function submitRequest(){
+  const btn=document.getElementById('req-submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  try{
+    if(reqType==='shift'){
+      const date=document.getElementById('req-date').value;
+      const start=document.getElementById('req-start').value;
+      const end=document.getElementById('req-end').value;
+      if(!date||!start||!end){alert('Please fill in date and times.');return;}
+      await post('/api/shift-request',{empId,empName,type:'shift',date,start,end,
+        role:document.getElementById('req-role').value,
+        poolId:Number(activePoolId),
+        notes:document.getElementById('req-notes').value});
+    } else {
+      const date=document.getElementById('req-do-date').value;
+      if(!date){alert('Please select a date.');return;}
+      await post('/api/shift-request',{empId,empName,type:'day_off',date,
+        poolId:Number(activePoolId),
+        reason:document.getElementById('req-do-reason').value});
+    }
+    cancelRequest();
+  }catch(e){alert('Could not submit. Check your connection.');}
+  btn.disabled=false;btn.textContent='Submit →';
+}
+
+// ══ Init ════════════════════════════════════════════════════════════════════
+async function init() {
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  }
+  const savedId = localStorage.getItem('pm_worker_id');
+  const savedName = localStorage.getItem('pm_worker_name');
+  if (savedId && savedName) {
+    empId = savedId; empName = savedName;
+    await afterLogin();
+  } else {
+    await loadNameList();
+    show('name');
+  }
+  // Poll for new notifications (e.g. messages from management) ~every 30s
+  setInterval(() => {
+    if (empId && activePoolId != null) renderNotifications().catch(() => {});
+  }, 30000);
+}
+init();
+</script>
+</body>
+</html>

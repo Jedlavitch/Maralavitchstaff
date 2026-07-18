@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maralavitchmanagement</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    /* Brand blue — shades give depth & hierarchy */
+    --blue:#0284c7; --blue-light:#7dd3fc; --blue-dark:#023e8a;
+    /* Semantic colors — each hue means something */
+    --green:#16a34a; --green-light:#dcfce7;   /* good / pass / open */
+    --red:#dc2626;   --red-light:#fee2e2;      /* problem / fail / closed */
+    --yellow:#d97706; --yellow-light:#fef3c7;  /* caution / warn / limited */
+    /* Neutrals */
+    --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --radius:10px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; letter-spacing:-0.011em; }
+  header { background:var(--blue-dark); color:white; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+  header h1 { font-size:1.2rem; font-weight:700; }
+  header span { font-size:.8rem; opacity:.75; }
+  nav { display:flex; background:var(--blue); overflow-x:auto; }
+  nav button { flex:1; min-width:90px; padding:10px 4px; border:none; background:transparent; color:rgba(255,255,255,.75); font-size:.8rem; font-weight:600; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  nav button.active { color:white; border-bottom-color:var(--blue-light); background:rgba(0,0,0,.15); }
+  .page { display:none; padding:16px; max-width:900px; margin:0 auto; }
+  .page.active { display:block; }
+  .card { background:var(--card); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size:1rem; margin-bottom:12px; color:var(--blue-dark); border-bottom:2px solid var(--blue-light); padding-bottom:6px; }
+  .form-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; align-items:flex-end; }
+  .form-group { display:flex; flex-direction:column; gap:4px; flex:1; min-width:120px; }
+  label { font-size:.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }
+  input, select { padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:.9rem; width:100%; }
+  input:focus, select:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,119,182,.15); }
+  .btn { padding:8px 16px; border:none; border-radius:6px; font-size:.9rem; font-weight:600; cursor:pointer; transition:opacity .15s; }
+  .btn:hover { opacity:.85; }
+  .btn-primary { background:var(--blue); color:white; }
+  .btn-success { background:var(--green); color:white; }
+  .btn-danger { background:var(--red); color:white; font-size:.78rem; padding:5px 10px; }
+  .btn-sm { font-size:.78rem; padding:5px 10px; }
+  .badge { display:inline-block; padding:3px 8px; border-radius:20px; font-size:.72rem; font-weight:700; }
+  .badge-pass { background:#d1fae5; color:#065f46; }
+  .badge-fail { background:#fee2e2; color:#991b1b; }
+  .badge-warn { background:#fef3c7; color:#92400e; }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  th { background:#f1f5f9; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:8px 10px; text-align:left; }
+  td { padding:8px 10px; border-top:1px solid var(--border); vertical-align:middle; }
+  tr:hover td { background:#f8fafc; }
+  .empty { text-align:center; color:var(--muted); padding:30px; font-size:.9rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
+  .stat-box { background:var(--card); border-radius:var(--radius); padding:14px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .stat-box .val { font-size:1.8rem; font-weight:700; color:var(--blue-dark); }
+  .stat-box .lbl { font-size:.72rem; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+  .sched-grid { overflow-x:auto; }
+  .sched-table { min-width:600px; }
+  .sched-table th, .sched-table td { min-width:80px; text-align:center; }
+  .shift-cell { background:#dbeafe; color:var(--blue-dark); border-radius:4px; padding:3px 6px; font-size:.78rem; font-weight:600; display:inline-block; }
+  .shift-cell.off { background:#f1f5f9; color:var(--muted); }
+  .clock-status { display:flex; align-items:center; gap:8px; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .dot-in { background:var(--green); }
+  .dot-out { background:var(--muted); }
+  .range-hint { font-size:.72rem; color:var(--muted); }
+  .day-pill { padding:7px 11px; border:1px solid var(--border); border-radius:6px; background:#fff; font-size:.8rem; font-weight:700; color:var(--muted); cursor:pointer; }
+  .day-pill.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .sched-legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-bottom:12px; }
+  .sched-legend .lg { display:inline-flex; align-items:center; gap:6px; font-size:.74rem; color:var(--muted); font-weight:600; }
+  .sched-legend .lg-dot { width:13px; height:13px; border-radius:3px; flex-shrink:0; }
+  /* QR section */
+  .qr-section { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+  #qrcode { background:white; padding:10px; border-radius:8px; border:2px solid var(--blue-light); }
+  #qrcode canvas, #qrcode img { display:block; }
+  .qr-info { flex:1; min-width:200px; }
+  .qr-url { font-size:.85rem; color:var(--blue); word-break:break-all; background:#eff6ff; padding:8px 10px; border-radius:6px; margin-top:8px; font-family:monospace; }
+  @media (max-width:480px) { .form-row { flex-direction:column; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏊 Maralavitchmanagement</h1>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:.72rem;opacity:.7">POOL</span>
+      <select id="pool-switcher" onchange="switchPool(this.value)"
+        style="padding:6px 10px;border-radius:6px;border:none;font-size:.85rem;font-weight:700;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;max-width:200px"></select>
+    </div>
+    <span id="header-clock" style="white-space:nowrap"></span>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('chemicals',this)">Chemicals</button>
+  <button onclick="showPage('schedule',this)">Schedule</button>
+  <button onclick="showPage('timeclock',this)">Time Clock</button>
+  <button onclick="showPage('employees',this)">Employees</button>
+  <button onclick="showPage('board',this)">Board</button>
+  <button onclick="showPage('reports',this)">Reports</button>
+  <button onclick="showPage('pools',this)">🏊 Pools</button>
+</nav>
+
+<!-- CHEMICALS -->
+<div class="page active" id="page-chemicals">
+  <div class="stats-grid" id="chem-stats"></div>
+
+  <!-- QR Code card -->
+  <div class="card">
+    <h2>Guard Scan-to-Log QR Code</h2>
+    <div class="qr-section">
+      <div id="qrcode"></div>
+      <div class="qr-info">
+        <p style="font-size:.9rem">Guards scan this code with their phone to log chemical readings from anywhere on the pool deck.</p>
+        <div class="qr-url" id="qr-url">Loading…</div>
+        <p style="font-size:.75rem;color:var(--muted);margin-top:8px">Phones must be on the same WiFi network.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Manual Log Entry</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="chem-date" />
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="time" id="chem-time" />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="chem-type">
+          <option value="hourly">Hourly Check</option>
+          <option value="daily">Daily Check</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Free Chlorine (ppm) <span class="range-hint">target 1–3</span></label>
+        <input type="number" id="chem-cl" step="0.1" min="0" max="10" placeholder="e.g. 2.0" />
+      </div>
+      <div class="form-group">
+        <label>pH <span class="range-hint">target 7.2–7.8</span></label>
+        <input type="number" id="chem-ph" step="0.1" min="6" max="9" placeholder="e.g. 7.4" />
+      </div>
+      <div class="form-group">
+        <label>Combined Cl (ppm) <span class="range-hint">&lt;0.5</span></label>
+        <input type="number" id="chem-ccl" step="0.1" min="0" max="5" placeholder="optional" />
+      </div>
+      <div class="form-group">
+        <label>Recorded By</label>
+        <select id="chem-by"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Notes</label>
+        <input type="text" id="chem-notes" placeholder="Optional notes…" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="logChemical()">Log Reading</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Recent Readings <button class="btn btn-sm btn-primary" style="float:right" onclick="renderChemicals()">↻ Refresh</button></h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Date/Time</th><th>Type</th><th>Cl (ppm)</th><th>pH</th><th>Comb. Cl</th><th>By</th><th>Status</th><th></th></tr></thead>
+        <tbody id="chem-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="page" id="page-schedule">
+  <div class="card">
+    <h2>Week of <span id="sched-week-label"></span></h2>
+    <div class="form-row" style="margin-bottom:14px">
+      <button class="btn btn-sm btn-primary" onclick="changeWeek(-1)">← Prev</button>
+      <button class="btn btn-sm btn-primary" onclick="changeWeek(1)">Next →</button>
+      <button class="btn btn-sm" style="background:#e2e8f0" onclick="changeWeek(0)">Today's Week</button>
+    </div>
+    <div id="sched-legend" class="sched-legend"></div>
+    <div class="sched-grid">
+      <table class="sched-table">
+        <thead id="sched-head"></thead>
+        <tbody id="sched-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Shift & Day-Off Requests <span id="req-badge" style="margin-left:6px"></span>
+      <button class="btn btn-sm" style="float:right;background:#f1f5f9" onclick="renderSchedule()">↻ Refresh</button>
+    </h2>
+    <div id="req-list"><p class="empty">No requests yet.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Add Shift(s)</h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Schedule one person for a single day, or for many days at once — pick a date range and (optionally) which weekdays repeat.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Employee</label>
+        <select id="sched-emp"></select>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="sched-role">
+          <option>Pool Owner</option><option>Owner</option><option>Manager</option>
+          <option>Head Guard</option><option>Lifeguard</option>
+          <option>Staffer</option><option>Cashier</option><option>Maintenance</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start</label>
+        <input type="time" id="sched-start" />
+      </div>
+      <div class="form-group">
+        <label>End</label>
+        <input type="time" id="sched-end" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>From date</label>
+        <input type="date" id="sched-date" />
+      </div>
+      <div class="form-group">
+        <label>To date <span class="range-hint">optional</span></label>
+        <input type="date" id="sched-date-end" />
+      </div>
+      <div class="form-group" style="flex:2">
+        <label>Repeat on <span class="range-hint">optional — leave empty for every day in range</span></label>
+        <div id="sched-days" style="display:flex;gap:5px;flex-wrap:wrap;padding-top:2px">
+          <button type="button" class="day-pill" data-day="1" onclick="toggleDayPill(this)">Mon</button>
+          <button type="button" class="day-pill" data-day="2" onclick="toggleDayPill(this)">Tue</button>
+          <button type="button" class="day-pill" data-day="3" onclick="toggleDayPill(this)">Wed</button>
+          <button type="button" class="day-pill" data-day="4" onclick="toggleDayPill(this)">Thu</button>
+          <button type="button" class="day-pill" data-day="5" onclick="toggleDayPill(this)">Fri</button>
+          <button type="button" class="day-pill" data-day="6" onclick="toggleDayPill(this)">Sat</button>
+          <button type="button" class="day-pill" data-day="0" onclick="toggleDayPill(this)">Sun</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row" style="align-items:center;margin-bottom:0">
+      <span id="sched-add-result" style="flex:1;font-size:.82rem;color:var(--muted)">Tip: set the same days, change the time, and add again to give someone two shifts in a day.</span>
+      <button class="btn btn-primary" onclick="addShift()">Add Shift(s)</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIME CLOCK -->
+<div class="page" id="page-timeclock">
+  <div class="card">
+    <h2>Clock In / Out</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Employee</label>
+        <select id="tc-emp"></select>
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-success" onclick="clockAction()">Clock In / Out</button>
+      </div>
+    </div>
+    <div id="tc-status" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>☕ Breaks</h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Assign a break to a staff member — they'll get a notification and can start it from their phone. <strong>Only managers and staffers can assign breaks.</strong></p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Assigned by</label>
+        <select id="brk-by"></select>
+      </div>
+      <div class="form-group">
+        <label>Employee</label>
+        <select id="brk-emp"></select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="brk-date" />
+      </div>
+      <div class="form-group">
+        <label>Start Time <span class="range-hint">optional</span></label>
+        <input type="time" id="brk-start" />
+      </div>
+      <div class="form-group">
+        <label>Length</label>
+        <select id="brk-duration">
+          <option value="10">10 min</option>
+          <option value="15">15 min</option>
+          <option value="30" selected>30 min</option>
+          <option value="45">45 min</option>
+          <option value="60">60 min</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="addBreak()">Add Break</button>
+      </div>
+    </div>
+    <div id="brk-list" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>Today's Punches <button class="btn btn-sm btn-primary" style="float:right" onclick="renderTimeclock()">↻ Refresh</button></h2>
+    <div id="tc-punches"></div>
+  </div>
+  <div class="card">
+    <h2>Shift Reports &amp; Flags</h2>
+    <div id="tc-flags"></div>
+  </div>
+  <div class="card">
+    <h2>Currently On Site</h2>
+    <div id="tc-onsite"></div>
+  </div>
+</div>
+
+<!-- EMPLOYEES -->
+<div class="page" id="page-employees">
+  <div class="card">
+    <h2>Add Employee</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="emp-name" placeholder="Full name" />
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="emp-role">
+          <option>Pool Owner</option><option>Owner</option><option>Manager</option>
+          <option>Head Guard</option><option>Lifeguard</option>
+          <option>Staffer</option><option>Cashier</option><option>Maintenance</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" id="emp-phone" placeholder="555-000-0000" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="emp-password" placeholder="Optional" autocomplete="new-password" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="addEmployee()">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Staff</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Role Badge</th><th>Phone</th><th>Password</th><th>Pools</th><th>Actions</th></tr></thead>
+      <tbody id="emp-table"></tbody>
+    </table>
+  </div>
+
+  <!-- Set Password Modal -->
+  <div id="pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;padding:28px 24px;width:90%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <h3 style="margin-bottom:6px;color:var(--blue-dark)" id="pw-modal-title">Set Password</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Leave blank to remove the password.</p>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>New Password</label>
+        <input type="password" id="pw-modal-input" placeholder="Enter password…" autocomplete="new-password"
+          style="font-size:1rem" onkeydown="if(event.key==='Enter')saveEmpPassword()"/>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-primary" style="flex:1" onclick="saveEmpPassword()">Save</button>
+        <button class="btn" style="flex:1;background:#f3f4f6" onclick="closePwModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div class="page" id="page-board">
+  <div class="card" style="border:2px solid var(--blue-light)">
+    <h2>📣 Send Notification to Staff</h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">
+      Pushes an instant alert to staff phones and their in-app bell. Goes to staff at
+      <strong id="notif-pool-name">this pool</strong>.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Send To</label>
+        <select id="notif-target"></select>
+      </div>
+      <div class="form-group" style="flex:2">
+        <label>Title</label>
+        <input type="text" id="notif-title" placeholder="📢 Message from Management" />
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Message</label>
+      <textarea id="notif-msg" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;resize:vertical" placeholder="e.g. Staff meeting at 3pm today by the lifeguard stand."></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="sendNotification()">📤 Send Notification</button>
+    <div id="notif-send-result" style="font-size:.85rem;margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>Pool Status</h2>
+    <div class="form-row" style="margin-bottom:0">
+      <button class="btn btn-sm" id="bstatus-open"    onclick="setPoolStatus('open')"   >🟢 Open</button>
+      <button class="btn btn-sm" id="bstatus-limited" onclick="setPoolStatus('limited')">🟡 Limited</button>
+      <button class="btn btn-sm" id="bstatus-closed"  onclick="setPoolStatus('closed')" >🔴 Closed</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Post Announcement</h2>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Title</label>
+        <input type="text" id="ann-title" placeholder="e.g. Staff Meeting Thursday" />
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="ann-priority">
+          <option value="info">ℹ️ Info</option>
+          <option value="warn">⚠️ Warning</option>
+          <option value="urgent">🚨 Urgent</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Message</label>
+      <textarea id="ann-body" rows="3" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;resize:vertical" placeholder="Write your message here…"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="postAnnouncement()">Post Announcement</button>
+  </div>
+  <div class="card">
+    <h2>Current Announcements</h2>
+    <div id="mgmt-announcements"></div>
+  </div>
+  <div class="card">
+    <h2>Add Resource</h2>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Title</label>
+        <input type="text" id="res-title" placeholder="e.g. Emergency Procedures" />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="res-type">
+          <option value="procedure">📄 Procedure</option>
+          <option value="info">ℹ️ Info</option>
+          <option value="contact">📞 Contact</option>
+          <option value="link">🔗 Link</option>
+          <option value="schedule">📅 Schedule</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Description</label>
+        <input type="text" id="res-desc" placeholder="Brief description" />
+      </div>
+      <div class="form-group" style="flex:2">
+        <label>URL (optional)</label>
+        <input type="url" id="res-url" placeholder="https://…" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="addResource()">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Current Resources</h2>
+    <div id="mgmt-resources"></div>
+  </div>
+</div>
+
+<!-- REPORTS -->
+<div class="page" id="page-reports">
+  <div class="card">
+    <h2>Chemical Log Export</h2>
+    <div class="form-row">
+      <div class="form-group"><label>From</label><input type="date" id="rpt-from" /></div>
+      <div class="form-group"><label>To</label><input type="date" id="rpt-to" /></div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Hours Summary</h2>
+    <table>
+      <thead><tr><th>Employee</th><th>Total Hours (All Time)</th></tr></thead>
+      <tbody id="rpt-hours"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Chemical Compliance</h2>
+    <div id="rpt-compliance"></div>
+  </div>
+</div>
+
+<!-- POOLS -->
+<div class="page" id="page-pools">
+  <div class="card">
+    <h2>Add New Pool</h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">
+      Each pool has its own staff, schedule, chemical log, time clock, and board.
+      Use the selector in the header to switch between pools.</p>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Pool Name</label>
+        <input type="text" id="pool-name" placeholder="e.g. Westside Community Pool" />
+      </div>
+      <div class="form-group" style="flex:2">
+        <label>Address / Location</label>
+        <input type="text" id="pool-address" placeholder="Optional" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="addPool()">Add Pool</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>All Pools</h2>
+    <div id="pools-list"></div>
+  </div>
+</div>
+
+<!-- Employee Pools Modal -->
+<div id="emp-pools-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:24px;width:90%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <h3 style="margin-bottom:6px;color:var(--blue-dark)" id="emp-pools-title">Assign Pools</h3>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Select which pools this employee is staffed at.</p>
+    <div id="emp-pools-checks" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;max-height:240px;overflow-y:auto"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEmpPools()">Save</button>
+      <button class="btn" style="flex:1;background:#f3f4f6" onclick="closeEmpPools()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── API ────────────────────────────────────────────────────────────────────
+const api = {
+  get: async () => (await fetch('/api/data')).json(),
+  post: async (path, body) => (await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })).json(),
+};
+
+// ── State ──────────────────────────────────────────────────────────────────
+let DB = { employees:[], chemicals:[], shifts:[], punches:[], pools:[] };
+let currentWeekOffset = 0;
+let activePoolId = null;
+
+async function refresh() {
+  DB = await api.get();
+  // Ensure the active pool is valid; fall back to saved or first pool
+  const pools = DB.pools || [];
+  if (!activePoolId || !pools.some(p => Number(p.id) === Number(activePoolId))) {
+    const saved = Number(localStorage.getItem('pm_active_pool'));
+    activePoolId = pools.some(p => Number(p.id) === saved) ? saved : (pools[0]?.id ?? null);
+  }
+  renderPoolSwitcher();
+  refreshEmpSelects();
+}
+
+// ── Pool scoping helpers ────────────────────────────────────────────────────
+function activePool() {
+  return (DB.pools || []).find(p => Number(p.id) === Number(activePoolId)) || (DB.pools || [])[0] || null;
+}
+function inPool(item) { return Number(item.poolId) === Number(activePoolId); }
+function poolEmployees() {
+  return DB.employees.filter(e => (e.poolIds || []).map(Number).includes(Number(activePoolId)));
+}
+function renderPoolSwitcher() {
+  const sel = document.getElementById('pool-switcher');
+  if (!sel) return;
+  sel.innerHTML = (DB.pools || []).map(p =>
+    `<option value="${p.id}" ${Number(p.id) === Number(activePoolId) ? 'selected' : ''}>${p.name}</option>`
+  ).join('');
+}
+function rerenderActive() {
+  const active = document.querySelector('.page.active');
+  const name = active ? active.id.replace('page-', '') : 'chemicals';
+  ({ chemicals:renderChemicals, schedule:renderSchedule, timeclock:renderTimeclock,
+     employees:renderEmployees, board:renderBoard, reports:renderReports, pools:renderPools }[name] || (()=>{}))();
+}
+function switchPool(id) {
+  activePoolId = Number(id);
+  localStorage.setItem('pm_active_pool', String(activePoolId));
+  refreshEmpSelects();
+  buildQR();
+  rerenderActive();
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+// Local-date formatter — must match the server's local date (NOT UTC)
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today = () => ymd(new Date());
+const nowTime = () => new Date().toTimeString().slice(0,5);
+function fmt(dateStr, timeStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr+'T'+(timeStr||'00:00'));
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + (timeStr ? ' '+fmtTime(timeStr) : '');
+}
+function fmtTime(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+}
+const badge = s => s==='pass' ? `<span class="badge badge-pass">PASS</span>` :
+                   s==='fail' ? `<span class="badge badge-fail">FAIL</span>` :
+                                `<span class="badge badge-warn">WARN</span>`;
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('header-clock').textContent =
+    new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── Nav ────────────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name==='chemicals') renderChemicals();
+  if (name==='schedule') renderSchedule();
+  if (name==='timeclock') renderTimeclock();
+  if (name==='employees') renderEmployees();
+  if (name==='reports') renderReports();
+  if (name==='board') renderBoard();
+  if (name==='pools') renderPools();
+}
+
+// ── QR Code ────────────────────────────────────────────────────────────────
+async function buildQR() {
+  try {
+    const d = await (await fetch('/api/ip')).json();
+    const base = d.base_url || `http://${d.host}:${d.port}`;
+    // Deep-link to the active pool so a scan lands staff on the right pool
+    const url = activePoolId ? `${base}/maralavitchstaff?pool=${activePoolId}` : `${base}/maralavitchstaff`;
+    document.getElementById('qr-url').textContent = url;
+    const el = document.getElementById('qrcode');
+    el.innerHTML = '';
+    new QRCode(el, { text: url, width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
+  } catch(e) {
+    document.getElementById('qr-url').textContent = 'Start the server to generate QR code.';
+  }
+}
+
+// ── Pools ───────────────────────────────────────────────────────────────────
+async function addPool() {
+  const name = document.getElementById('pool-name').value.trim();
+  if (!name) return alert('Enter a pool name.');
+  const res = await api.post('/api/pool', { name, address: document.getElementById('pool-address').value.trim() });
+  document.getElementById('pool-name').value = '';
+  document.getElementById('pool-address').value = '';
+  // Switch to the newly created pool
+  if (res.pool) { activePoolId = Number(res.pool.id); localStorage.setItem('pm_active_pool', String(activePoolId)); }
+  await refresh();
+  renderPools();
+}
+async function renamePool(id) {
+  const pool = DB.pools.find(p => Number(p.id) === Number(id));
+  const name = prompt('Pool name:', pool?.name || '');
+  if (name === null) return;
+  const address = prompt('Address / location (optional):', pool?.address || '');
+  await api.post('/api/pool/update', { id, name: name.trim() || pool.name, address: (address || '').trim() });
+  await refresh();
+  renderPools();
+}
+async function deletePool(id) {
+  if ((DB.pools || []).length <= 1) return alert('You must keep at least one pool.');
+  const pool = DB.pools.find(p => Number(p.id) === Number(id));
+  if (!confirm(`Delete "${pool?.name}"?\n\nThis permanently removes that pool's schedule, chemical log, time-clock records, announcements, and resources. Staff assigned only to this pool will be unassigned. This cannot be undone.`)) return;
+  const res = await api.post('/api/pool/delete', { id });
+  if (!res.ok) return alert(res.error || 'Could not delete pool.');
+  if (Number(activePoolId) === Number(id)) activePoolId = null; // refresh() will pick a new one
+  await refresh();
+  renderPools();
+}
+async function setPoolStatusFor(id, status) {
+  await api.post('/api/pool_status', { poolId: Number(id), status });
+  await refresh();
+  renderPools();
+}
+function renderPools() {
+  const el = document.getElementById('pools-list');
+  if (!el) return;
+  const pools = DB.pools || [];
+  if (!pools.length) { el.innerHTML = '<p class="empty">No pools yet. Add one above.</p>'; return; }
+  const statusCfg = { open:{t:'🟢 Open',c:'var(--green)'}, limited:{t:'🟡 Limited',c:'var(--yellow)'}, closed:{t:'🔴 Closed',c:'var(--red)'} };
+  el.innerHTML = pools.map(p => {
+    const staff = DB.employees.filter(e => (e.poolIds || []).map(Number).includes(Number(p.id)));
+    const shifts = DB.shifts.filter(s => Number(s.poolId) === Number(p.id));
+    const isActive = Number(p.id) === Number(activePoolId);
+    const sc = statusCfg[p.status] || statusCfg.open;
+    return `<div style="padding:14px;border:2px solid ${isActive ? 'var(--blue)' : 'var(--border)'};border-radius:10px;margin-bottom:12px;background:${isActive ? '#f0f9ff' : '#fff'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:1rem;color:var(--blue-dark)">
+            ${p.name} ${isActive ? '<span class="badge" style="background:var(--blue);color:#fff;font-size:.65rem">ACTIVE</span>' : ''}
+          </div>
+          ${p.address ? `<div style="font-size:.8rem;color:var(--muted);margin-top:2px">📍 ${p.address}</div>` : ''}
+          <div style="font-size:.78rem;color:var(--muted);margin-top:6px">
+            👥 ${staff.length} staff · 📅 ${shifts.length} shifts · <span style="color:${sc.c};font-weight:600">${sc.t}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="switchPool(${p.id})">Switch to this pool</button>` : ''}
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm" style="background:#f1f5f9" onclick="renamePool(${p.id})">✎ Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePool(${p.id})">Delete</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <span style="font-size:.72rem;color:var(--muted);align-self:center">Status:</span>
+        <button class="btn btn-sm" style="background:${p.status==='open'?'var(--green)':'#f1f5f9'};color:${p.status==='open'?'#fff':'#000'}" onclick="setPoolStatusFor(${p.id},'open')">🟢 Open</button>
+        <button class="btn btn-sm" style="background:${p.status==='limited'?'var(--yellow)':'#f1f5f9'};color:${p.status==='limited'?'#fff':'#000'}" onclick="setPoolStatusFor(${p.id},'limited')">🟡 Limited</button>
+        <button class="btn btn-sm" style="background:${p.status==='closed'?'var(--red)':'#f1f5f9'};color:${p.status==='closed'?'#fff':'#000'}" onclick="setPoolStatusFor(${p.id},'closed')">🔴 Closed</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Employees ─────────────────────────────────────────────────────────────
+async function addEmployee() {
+  const name = document.getElementById('emp-name').value.trim();
+  if (!name) return alert('Enter a name.');
+  const pw = document.getElementById('emp-password').value;
+  await api.post('/api/employee', {
+    name,
+    role: document.getElementById('emp-role').value,
+    phone: document.getElementById('emp-phone').value,
+    poolIds: activePoolId ? [Number(activePoolId)] : [],
+    ...(pw ? { password: pw } : {})
+  });
+  document.getElementById('emp-name').value = '';
+  document.getElementById('emp-phone').value = '';
+  document.getElementById('emp-password').value = '';
+  await refresh();
+  renderEmployees();
+}
+async function deleteEmployee(id) {
+  if (!confirm('Remove this employee?')) return;
+  await api.post('/api/employee/delete', { id });
+  await refresh();
+  renderEmployees();
+}
+function renderEmployees() {
+  const tb = document.getElementById('emp-table');
+  const emps = poolEmployees();
+  tb.innerHTML = emps.length ? emps.map(e => {
+    const poolNames = (e.poolIds || [])
+      .map(pid => (DB.pools.find(p => Number(p.id) === Number(pid)) || {}).name)
+      .filter(Boolean);
+    const poolChips = poolNames.length
+      ? poolNames.map(n => `<span style="display:inline-block;background:#eff6ff;color:var(--blue);border-radius:10px;padding:1px 7px;margin:1px;font-size:.72rem">${n}</span>`).join(' ')
+      : '<span style="color:var(--muted)">—</span>';
+    return `<tr>
+      <td><strong>${e.name}</strong></td>
+      <td>
+        <span style="font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:700;background:${rc(e.role).bg};color:${rc(e.role).fg};border:1px solid ${rc(e.role).border}">${e.role}</span>
+      </td>
+      <td>${e.phone||'—'}</td>
+      <td>${e.has_password
+        ? '<span style="color:#166534;font-weight:600">🔒 Set</span>'
+        : '<span style="color:var(--muted)">🔓 None</span>'}</td>
+      <td>${poolChips}
+        <button class="btn btn-sm" style="background:#f1f5f9;margin-left:2px;padding:3px 7px" onclick="openEmpPools(${e.id},'${e.name.replace(/'/g,"\\'")}')">✎</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-primary" onclick="openPwModal(${e.id},'${e.name.replace(/'/g,"\\'")}')">Set Password</button>
+        <button class="btn btn-danger" onclick="deleteEmployee(${e.id})">Remove</button>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" class="empty">No staff assigned to this pool yet. Add one above, or assign existing staff from another pool using the ✎ button.</td></tr>`;
+}
+
+// ── Employee → Pool assignment ──────────────────────────────────────────────
+let _empPoolsId = null;
+function openEmpPools(id, name) {
+  _empPoolsId = id;
+  const emp = DB.employees.find(e => Number(e.id) === Number(id));
+  const assigned = (emp?.poolIds || []).map(Number);
+  document.getElementById('emp-pools-title').textContent = `Assign Pools — ${name}`;
+  document.getElementById('emp-pools-checks').innerHTML = (DB.pools || []).map(p => `
+    <label style="display:flex;align-items:center;gap:9px;font-size:.92rem;cursor:pointer;padding:6px 8px;border:1px solid var(--border);border-radius:8px">
+      <input type="checkbox" value="${p.id}" ${assigned.includes(Number(p.id)) ? 'checked' : ''} style="width:auto;transform:scale(1.2)"/>
+      <span>${p.name}</span>
+    </label>`).join('');
+  document.getElementById('emp-pools-modal').style.display = 'flex';
+}
+function closeEmpPools() {
+  document.getElementById('emp-pools-modal').style.display = 'none';
+  _empPoolsId = null;
+}
+async function saveEmpPools() {
+  const ids = [...document.querySelectorAll('#emp-pools-checks input:checked')].map(c => Number(c.value));
+  await api.post('/api/employee/pools', { empId: _empPoolsId, poolIds: ids });
+  closeEmpPools();
+  await refresh();
+  renderEmployees();
+}
+
+// ── Password Modal ─────────────────────────────────────────────────────────
+let _pwEmpId = null;
+function openPwModal(id, name) {
+  _pwEmpId = id;
+  document.getElementById('pw-modal-title').textContent = `Set Password — ${name}`;
+  document.getElementById('pw-modal-input').value = '';
+  document.getElementById('pw-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pw-modal-input').focus(), 100);
+}
+function closePwModal() {
+  document.getElementById('pw-modal').style.display = 'none';
+  _pwEmpId = null;
+}
+async function saveEmpPassword() {
+  const pw = document.getElementById('pw-modal-input').value;
+  await api.post('/api/employee/set-password', { empId: _pwEmpId, password: pw });
+  closePwModal();
+  await refresh();
+  renderEmployees();
+  alert(pw ? '✅ Password saved.' : '🔓 Password removed.');
+}
+function refreshEmpSelects() {
+  const opts = poolEmployees().map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+  const empty = '<option value="">— No staff in this pool —</option>';
+  ['chem-by','tc-emp','sched-emp','brk-emp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts || empty;
+  });
+  // Break assigners — managers & staffers only
+  const assigners = poolEmployees().filter(e => e.role === 'Manager' || e.role === 'Staffer');
+  const byEl = document.getElementById('brk-by');
+  if (byEl) byEl.innerHTML = assigners.length
+    ? assigners.map(e => `<option value="${e.id}">${e.name} · ${e.role}</option>`).join('')
+    : '<option value="">— none at this pool —</option>';
+}
+
+// ── Chemicals ─────────────────────────────────────────────────────────────
+async function logChemical() {
+  const cl = parseFloat(document.getElementById('chem-cl').value);
+  const ph = parseFloat(document.getElementById('chem-ph').value);
+  if (isNaN(cl) || isNaN(ph)) return alert('Enter Chlorine and pH values.');
+  const cclVal = document.getElementById('chem-ccl').value;
+  const byId = document.getElementById('chem-by').value;
+  const byName = DB.employees.find(e => String(e.id)===String(byId))?.name || '';
+  await api.post('/api/chemical', {
+    date: document.getElementById('chem-date').value || today(),
+    time: document.getElementById('chem-time').value || nowTime(),
+    type: document.getElementById('chem-type').value,
+    cl, ph,
+    ccl: cclVal !== '' ? parseFloat(cclVal) : null,
+    by: byName,
+    poolId: Number(activePoolId),
+    notes: document.getElementById('chem-notes').value,
+  });
+  document.getElementById('chem-cl').value = '';
+  document.getElementById('chem-ph').value = '';
+  document.getElementById('chem-ccl').value = '';
+  document.getElementById('chem-notes').value = '';
+  await refresh();
+  renderChemicals();
+}
+async function deleteChemLog(id) {
+  // local optimistic remove; no delete endpoint needed — just reload
+  DB.chemicals = DB.chemicals.filter(r => r.id !== id);
+  renderChemicals();
+}
+async function renderChemicals() {
+  await refresh();
+  const logs = DB.chemicals.filter(inPool);
+  const todayLogs = logs.filter(r => r.date === today());
+  const lastCl = logs[0]?.cl ?? '—';
+  const lastPh = logs[0]?.ph ?? '—';
+  const fails = logs.filter(r => r.status==='fail').length;
+  document.getElementById('chem-stats').innerHTML = `
+    <div class="stat-box"><div class="val">${lastCl}</div><div class="lbl">Last Cl (ppm)</div></div>
+    <div class="stat-box"><div class="val">${lastPh}</div><div class="lbl">Last pH</div></div>
+    <div class="stat-box"><div class="val">${todayLogs.length}</div><div class="lbl">Readings Today</div></div>
+    <div class="stat-box"><div class="val">${fails}</div><div class="lbl">Total Fails</div></div>`;
+  const tb = document.getElementById('chem-table');
+  tb.innerHTML = logs.length ? logs.slice(0,50).map(r =>
+    `<tr>
+      <td>${fmt(r.date,r.time)}</td>
+      <td><span class="badge" style="background:#dbeafe;color:#1e40af">${r.type}</span></td>
+      <td>${r.cl}</td><td>${r.ph}</td>
+      <td>${r.ccl!=null?r.ccl:'—'}</td>
+      <td>${r.by||'—'}</td>
+      <td>${badge(r.status)}</td>
+      <td><button class="btn btn-danger" onclick="deleteChemLog(${r.id})">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="8" class="empty">No readings yet.</td></tr>`;
+}
+
+// ── Role Colors ────────────────────────────────────────────────────────────
+const ROLE_COLORS = {
+  'Pool Owner': {bg:'#f3e8ff', fg:'#6b21a8', border:'#c084fc'},
+  'Owner':      {bg:'#e0e7ff', fg:'#3730a3', border:'#818cf8'},
+  'Manager':    {bg:'#dbeafe', fg:'#1e40af', border:'#60a5fa'},
+  'Head Guard': {bg:'#cffafe', fg:'#155e75', border:'#22d3ee'},
+  'Lifeguard':  {bg:'#dcfce7', fg:'#166534', border:'#4ade80'},
+  'Staffer':    {bg:'#f1f5f9', fg:'#334155', border:'#94a3b8'},
+  'Cashier':    {bg:'#fef3c7', fg:'#92400e', border:'#fbbf24'},
+  'Maintenance':{bg:'#f3f4f6', fg:'#374151', border:'#9ca3af'},
+};
+function rc(role) { return ROLE_COLORS[role] || {bg:'#dbeafe', fg:'#1e40af', border:'#60a5fa'}; }
+
+// ── Schedule ───────────────────────────────────────────────────────────────
+function getWeekDates(offset) {
+  const d = new Date();
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - day + 1 + offset*7);
+  return Array.from({length:7}, (_,i) => { const dd=new Date(monday); dd.setDate(monday.getDate()+i); return ymd(dd); });
+}
+function changeWeek(dir) { currentWeekOffset = dir===0 ? 0 : currentWeekOffset+dir; renderSchedule(); }
+function toggleDayPill(btn) { btn.classList.toggle('on'); }
+
+async function addShift() {
+  const empId = document.getElementById('sched-emp').value;
+  const from  = document.getElementById('sched-date').value;
+  const to    = document.getElementById('sched-date-end').value || from;
+  const start = document.getElementById('sched-start').value;
+  const end   = document.getElementById('sched-end').value;
+  const role  = document.getElementById('sched-role').value;
+  if (!empId || !from || !start || !end) return alert('Fill in employee, From date, start and end.');
+  const d0 = new Date(from + 'T12:00:00'), d1 = new Date(to + 'T12:00:00');
+  if (d1 < d0) return alert('"To date" is before "From date".');
+  const days = [...document.querySelectorAll('#sched-days .day-pill.on')].map(b => Number(b.dataset.day));
+  const dates = [];
+  for (let d = new Date(d0); d <= d1; d.setDate(d.getDate() + 1)) {
+    if (!days.length || days.includes(d.getDay())) dates.push(ymd(d));
+  }
+  if (!dates.length) return alert('No matching days in that range — check the weekday selection.');
+  const emp = DB.employees.find(e => String(e.id) === String(empId));
+  const shifts = dates.map(date => ({
+    empId, empName: emp?.name || '?', date, start, end, role, poolId: Number(activePoolId)
+  }));
+  const res = await api.post('/api/shifts/bulk', { shifts });
+  await refresh();
+  renderSchedule();
+  const r = document.getElementById('sched-add-result');
+  if (r) { r.style.color = 'var(--green)'; r.textContent = `✅ Added ${res.count} shift${res.count !== 1 ? 's' : ''} for ${emp?.name || ''}.`; }
+}
+async function deleteShift(id) {
+  await api.post('/api/shift/delete', { id });
+  await refresh();
+  renderSchedule();
+}
+async function renderSchedule() {
+  await refresh();
+  renderRequests();
+  const dates = getWeekDates(currentWeekOffset);
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayStr = today();
+  document.getElementById('sched-week-label').textContent =
+    `${new Date(dates[0]).toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'})} – ${new Date(dates[6]).toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'})}`;
+  // Color legend — roles in play this week (staff badges + shift blocks)
+  const legendEl = document.getElementById('sched-legend');
+  if (legendEl) {
+    const used = new Set([
+      ...poolEmployees().map(e => e.role),
+      ...DB.shifts.filter(s => inPool(s) && dates.includes(s.date)).map(s => s.role),
+    ].filter(Boolean));
+    const ordered = Object.keys(ROLE_COLORS).filter(r => used.has(r));
+    legendEl.innerHTML = ordered.map(r => {
+      const c = rc(r);
+      return `<span class="lg"><span class="lg-dot" style="background:${c.bg};border:1.5px solid ${c.border}"></span><span style="color:${c.fg}">${r}</span></span>`;
+    }).join('');
+  }
+  document.getElementById('sched-head').innerHTML =
+    '<tr><th style="min-width:110px">Employee</th>'+dates.map((d,i) => {
+      const isToday = d === todayStr;
+      return `<th style="${isToday?'background:#dbeafe;color:var(--blue);':''}min-width:90px">${dayNames[i]}<br><small style="font-weight:400">${new Date(d).getUTCDate()}</small></th>`;
+    }).join('')+'</tr>';
+  const emps = poolEmployees();
+  document.getElementById('sched-body').innerHTML = emps.length ? emps.map(emp => {
+    const empC = rc(emp.role);
+    const cells = dates.map(d => {
+      const dayShifts = DB.shifts.filter(s => String(s.empId)===String(emp.id) && s.date===d && inPool(s));
+      const dayOffReqs = (DB.shift_requests||[]).filter(r =>
+        String(r.empId)===String(emp.id) && r.date===d && r.type==='day_off' && r.status!=='denied' && inPool(r)
+      );
+      const isToday = d === todayStr;
+      let content = '';
+      if (dayShifts.length) {
+        content = dayShifts.map(s => {
+          const c = rc(s.role);
+          return `<div style="background:${c.bg};color:${c.fg};border-left:3px solid ${c.border};border-radius:4px;padding:3px 7px;font-size:.75rem;font-weight:600;margin-bottom:3px">
+            <div>${fmtTime(s.start)}–${fmtTime(s.end)}</div>
+            <div style="font-size:.68rem;opacity:.85;margin-bottom:1px">${s.role}</div>
+            <button style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:.62rem;padding:0" onclick="deleteShift(${s.id})">✕ remove</button>
+          </div>`;
+        }).join('');
+      } else {
+        content = `<span style="font-size:.75rem;color:#cbd5e1">Off</span>`;
+      }
+      if (dayOffReqs.length) {
+        const approved = dayOffReqs.some(r => r.status==='approved');
+        content += `<div style="margin-top:3px;background:${approved?'#fee2e2':'#fef9c3'};color:${approved?'#991b1b':'#713f12'};border-radius:4px;padding:2px 6px;font-size:.68rem;font-weight:700">
+          ${approved ? '🚫 Day Off' : '⏳ Day Off Req'}
+        </div>`;
+      }
+      return `<td style="${isToday?'background:#f0f9ff;':''} vertical-align:top;padding:6px 5px">${content}</td>`;
+    });
+    return `<tr>
+      <td style="vertical-align:middle;padding:8px 10px">
+        <strong>${emp.name}</strong><br>
+        <span style="display:inline-block;margin-top:3px;font-size:.7rem;padding:2px 7px;border-radius:10px;font-weight:700;background:${empC.bg};color:${empC.fg};border:1px solid ${empC.border}">${emp.role}</span>
+      </td>
+      ${cells.join('')}
+    </tr>`;
+  }).join('') : `<tr><td colspan="8" class="empty">No staff assigned to this pool. Add staff on the Employees tab.</td></tr>`;
+}
+
+// ── Shift Request Management ───────────────────────────────────────────────
+function renderRequests() {
+  const reqs = (DB.shift_requests || []).filter(inPool);
+  const pending = reqs.filter(r => r.status==='pending');
+  const badge = document.getElementById('req-badge');
+  if (badge) badge.innerHTML = pending.length
+    ? `<span class="badge badge-warn">${pending.length} pending</span>` : '';
+  const el = document.getElementById('req-list');
+  if (!el) return;
+  if (!reqs.length) { el.innerHTML = '<p class="empty">No requests submitted yet.</p>'; return; }
+  el.innerHTML = reqs.map(r => {
+    const statusBadge = r.status==='approved'
+      ? `<span class="badge badge-pass">Approved</span>`
+      : r.status==='denied'
+      ? `<span class="badge badge-fail">Denied</span>`
+      : `<span class="badge badge-warn">Pending</span>`;
+    const dateStr = new Date(r.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const roleC = r.role ? rc(r.role) : null;
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">
+          ${r.type==='shift'?'📅':'🚫'} <strong>${r.empName}</strong>
+          <span style="font-weight:400;color:var(--muted)">— ${r.type==='shift'?'Shift Request':'Day Off'}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted)">
+          ${dateStr}
+          ${r.type==='shift' && r.start ? ` · ${fmtTime(r.start)}–${fmtTime(r.end)}` : ''}
+          ${roleC ? ` · <span style="font-weight:600;color:${roleC.fg}">${r.role}</span>` : ''}
+          ${r.reason ? ` · <em>"${r.reason}"</em>` : ''}
+          ${r.notes ? ` · <em>"${r.notes}"</em>` : ''}
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Submitted ${r.submitted||''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap">
+        ${statusBadge}
+        ${r.status==='pending' ? `
+          <button class="btn btn-sm btn-success" onclick="approveRequest(${r.id})">✓ Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="denyRequest(${r.id})">✕ Deny</button>
+        ` : ''}
+        <button class="btn btn-sm" style="background:#f1f5f9;padding:5px 8px" onclick="deleteRequest(${r.id})" title="Remove">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function approveRequest(id) {
+  const req = (DB.shift_requests||[]).find(r => r.id===id);
+  await api.post('/api/shift-request/update', {id, status:'approved'});
+  if (req && req.type==='shift') {
+    await api.post('/api/shift', {
+      empId:req.empId, empName:req.empName,
+      date:req.date, start:req.start, end:req.end, role:req.role,
+      poolId: req.poolId != null ? req.poolId : Number(activePoolId)
+    });
+  }
+  await refresh();
+  renderSchedule();
+}
+async function denyRequest(id) {
+  await api.post('/api/shift-request/update', {id, status:'denied'});
+  await refresh();
+  renderSchedule();
+}
+async function deleteRequest(id) {
+  if (!confirm('Remove this request?')) return;
+  await api.post('/api/shift-request/delete', {id});
+  await refresh();
+  renderSchedule();
+}
+
+// ── Time Clock ─────────────────────────────────────────────────────────────
+async function clockAction() {
+  const empId = document.getElementById('tc-emp').value;
+  if (!empId) return alert('Select an employee.');
+  const emp = DB.employees.find(e=>String(e.id)===String(empId));
+  const res = await api.post('/api/punch', { empId, empName:emp?.name||'?', poolId:Number(activePoolId) });
+  document.getElementById('tc-status').innerHTML =
+    `<span style="color:${res.action==='out'?'var(--red)':'var(--green)'}">
+      ${emp?.name} clocked ${res.action==='in'?'IN':'OUT'} at ${fmtTime(res.punch[res.action])}
+    </span>`;
+  await refresh();
+  renderTimeclock();
+}
+async function renderTimeclock() {
+  await refresh();
+  const todayP = DB.punches.filter(p=>p.date===today() && inPool(p));
+
+  // Punches table
+  const punchHtml = todayP.length ? `
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Employee</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Status</th></tr></thead>
+      <tbody>${todayP.map(p=>`<tr>
+        <td><strong>${p.empName}</strong></td>
+        <td>${fmtTime(p.in)}</td>
+        <td>${p.out?fmtTime(p.out):'<span class="badge badge-pass">On site</span>'}</td>
+        <td>${p.hours?p.hours+' hrs':'—'}</td>
+        <td><span class="dot ${p.out?'dot-out':'dot-in'}"></span> ${p.out?'Clocked out':'On site'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : `<p class="empty">No punches today.</p>`;
+  document.getElementById('tc-punches').innerHTML = punchHtml;
+
+  // Flags & questionnaire answers
+  const flagged = todayP.filter(p=>(p.checkin_flags?.length||p.checkout_flags?.length));
+  const flagHtml = todayP.length ? todayP.map(p => {
+    const ciFlags = p.checkin_flags || [];
+    const coFlags = p.checkout_flags || [];
+    const allFlags = [...ciFlags, ...coFlags];
+    const photo = p.checkout_photo;
+    const ciA = p.checkin_answers || {};
+    const coA = p.checkout_answers || {};
+    const hasDetail = allFlags.length || photo || Object.keys(ciA).length || Object.keys(coA).length;
+    if (!hasDetail) return `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem"><strong>${p.empName}</strong> — <span style="color:var(--muted)">No flags</span></div>`;
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <strong>${p.empName}</strong>
+        ${allFlags.length ? `<span class="badge badge-warn">⚠️ ${allFlags.length} flag${allFlags.length>1?'s':''}</span>` : '<span class="badge badge-pass">Clean</span>'}
+      </div>
+      ${allFlags.length ? `<ul style="font-size:.8rem;color:#92400e;background:#fef3c7;border-radius:6px;padding:8px 8px 8px 24px;margin-bottom:8px">${allFlags.map(f=>`<li>${f}</li>`).join('')}</ul>` : ''}
+      ${Object.keys(ciA).length ? `<details style="font-size:.8rem;margin-bottom:6px"><summary style="cursor:pointer;color:var(--blue)">Clock-in answers</summary><div style="margin-top:6px;padding:8px;background:#f8fafc;border-radius:6px">${Object.entries(ciA).filter(([k])=>k!=='ci_notes').map(([k,v])=>`<div><strong>${k.replace(/_/g,' ')}:</strong> ${v}</div>`).join('')}${ciA.ci_notes?`<div style="margin-top:4px"><em>"${ciA.ci_notes}"</em></div>`:''}</div></details>` : ''}
+      ${Object.keys(coA).length ? `<details style="font-size:.8rem;margin-bottom:6px"><summary style="cursor:pointer;color:var(--blue)">Clock-out checklist</summary><div style="margin-top:6px;padding:8px;background:#f8fafc;border-radius:6px">${Object.entries(coA).filter(([k])=>k!=='co_notes').map(([k,v])=>`<div>${v?'✅':'❌'} ${k.replace(/_/g,' ')}</div>`).join('')}${coA.co_notes?`<div style="margin-top:4px"><em>"${coA.co_notes}"</em></div>`:''}</div></details>` : ''}
+      ${photo ? `<details style="font-size:.8rem"><summary style="cursor:pointer;color:var(--blue)">Clock-out photo</summary><img src="/photos/${photo}" style="width:100%;max-width:320px;border-radius:8px;margin-top:6px"/></details>` : ''}
+    </div>`;
+  }).join('') : `<p class="empty">No shifts today yet.</p>`;
+  document.getElementById('tc-flags').innerHTML = flagHtml;
+
+  const activeBreakIds = new Set((DB.breaks||[]).filter(b=>inPool(b)&&b.status==='active').map(b=>String(b.empId)));
+  const onsite = todayP.filter(p=>!p.out);
+  document.getElementById('tc-onsite').innerHTML = onsite.length ?
+    onsite.map(p=>`<div class="clock-status" style="margin:6px 0"><span class="dot dot-in"></span> <strong>${p.empName}</strong> — in since ${fmtTime(p.in)}${activeBreakIds.has(String(p.empId))?' <span class="badge badge-warn">☕ on break</span>':''}</div>`).join('') :
+    `<p style="color:var(--muted);font-size:.9rem">No one currently on site.</p>`;
+
+  renderBreaks();
+}
+
+// ── Breaks ──────────────────────────────────────────────────────────────────
+async function addBreak() {
+  const empId = document.getElementById('brk-emp').value;
+  const assignedBy = document.getElementById('brk-by').value;
+  if (!empId) return alert('Select an employee.');
+  if (!assignedBy) return alert('Only managers and staffers can assign breaks — none are staffed at this pool. Assign someone the Manager or Staffer role first.');
+  const emp = DB.employees.find(e=>String(e.id)===String(empId));
+  const res = await api.post('/api/break', {
+    empId, empName: emp?.name || '?',
+    date: document.getElementById('brk-date').value || today(),
+    start: document.getElementById('brk-start').value || '',
+    duration: parseInt(document.getElementById('brk-duration').value, 10),
+    assignedBy,
+    poolId: Number(activePoolId),
+  });
+  if (!res.ok) return alert(res.error || 'Could not add break.');
+  document.getElementById('brk-start').value = '';
+  await refresh();
+  renderBreaks();
+}
+async function deleteBreak(id) {
+  await api.post('/api/break/delete', { id });
+  await refresh();
+  renderBreaks();
+}
+function renderBreaks() {
+  const el = document.getElementById('brk-list');
+  if (!el) return;
+  const todays = (DB.breaks || []).filter(b => inPool(b) && b.date === today())
+    .sort((a,b) => (a.start||'').localeCompare(b.start||''));
+  if (!todays.length) { el.innerHTML = '<p class="empty" style="padding:14px">No breaks scheduled today.</p>'; return; }
+  const statusBadge = b =>
+    b.status==='active'    ? `<span class="badge badge-warn">☕ On break since ${fmtTime(b.startedAt)}</span>` :
+    b.status==='completed' ? `<span class="badge badge-pass">✓ Taken${b.actualMinutes!=null?` · ${b.actualMinutes} min`:''}</span>` :
+                             `<span class="badge" style="background:#e0e7ff;color:#3730a3">Scheduled</span>`;
+  el.innerHTML = `<table><thead><tr><th>Employee</th><th>When</th><th>Length</th><th>Status</th><th></th></tr></thead><tbody>${
+    todays.map(b => `<tr>
+      <td><strong>${b.empName}</strong>${b.assignedByName ? `<div style="font-size:.7rem;color:var(--muted)">assigned by ${b.assignedByName}</div>` : ''}</td>
+      <td>${b.start ? fmtTime(b.start) : '<span style="color:var(--muted)">Anytime</span>'}</td>
+      <td>${b.duration} min</td>
+      <td>${statusBadge(b)}</td>
+      <td><button class="btn btn-danger" onclick="deleteBreak(${b.id})">✕</button></td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+
+// ── Board ──────────────────────────────────────────────────────────────────
+async function renderBoard() {
+  await refresh();
+  const status = (activePool() || {}).status || 'open';
+  ['open','limited','closed'].forEach(s => {
+    const btn = document.getElementById('bstatus-'+s);
+    if (btn) btn.style.background = s===status ? 'var(--blue)' : '';
+    if (btn) btn.style.color = s===status ? 'white' : '';
+  });
+  // Notification recipient picker (scoped to this pool's staff)
+  const poolNameEl = document.getElementById('notif-pool-name');
+  if (poolNameEl) poolNameEl.textContent = (activePool() || {}).name || 'this pool';
+  const tgt = document.getElementById('notif-target');
+  if (tgt) {
+    const staff = poolEmployees();
+    tgt.innerHTML = `<option value="all">👥 All staff (${staff.length})</option>` +
+      staff.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+  }
+  const typeIcons = { procedure:'📄', contact:'📞', link:'🔗', info:'ℹ️', schedule:'📅' };
+  const anns = (DB.announcements || []).filter(inPool);
+  document.getElementById('mgmt-announcements').innerHTML = anns.length ? anns.map(a => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.9rem">${a.priority==='urgent'?'🚨 ':a.priority==='warn'?'⚠️ ':'ℹ️ '}${a.title}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin:3px 0">${a.posted||''}</div>
+        <div style="font-size:.85rem">${a.body}</div>
+      </div>
+      <button class="btn btn-danger" onclick="deleteAnnouncement(${a.id})">✕</button>
+    </div>`).join('') : '<p class="empty">No announcements posted.</p>';
+  const res = (DB.resources || []).filter(inPool);
+  document.getElementById('mgmt-resources').innerHTML = res.length ? res.map(r => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.2rem">${typeIcons[r.type]||'📌'}</span>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.88rem">${r.title}</div>
+        ${r.desc?`<div style="font-size:.78rem;color:var(--muted)">${r.desc}</div>`:''}
+        ${r.url?`<div style="font-size:.75rem;color:var(--blue)">${r.url}</div>`:''}
+      </div>
+      <button class="btn btn-danger" onclick="deleteResource(${r.id})">✕</button>
+    </div>`).join('') : '<p class="empty">No resources added.</p>';
+}
+async function setPoolStatus(s) {
+  await api.post('/api/pool_status', { poolId: Number(activePoolId), status: s });
+  await refresh();
+  renderBoard();
+}
+async function sendNotification() {
+  const target = document.getElementById('notif-target').value || 'all';
+  const title = document.getElementById('notif-title').value.trim();
+  const message = document.getElementById('notif-msg').value.trim();
+  const resEl = document.getElementById('notif-send-result');
+  if (!message) { resEl.style.color = 'var(--red)'; resEl.textContent = 'Enter a message to send.'; return; }
+  const res = await api.post('/api/notification/send', {
+    poolId: Number(activePoolId), target, title, message
+  });
+  if (res.ok) {
+    document.getElementById('notif-title').value = '';
+    document.getElementById('notif-msg').value = '';
+    resEl.style.color = 'var(--green)';
+    resEl.textContent = `✅ Sent to ${res.sent} ${res.sent === 1 ? 'person' : 'people'}.`;
+    setTimeout(() => { resEl.textContent = ''; }, 4000);
+  } else {
+    resEl.style.color = 'var(--red)';
+    resEl.textContent = res.error || 'Could not send.';
+  }
+}
+async function postAnnouncement() {
+  const title = document.getElementById('ann-title').value.trim();
+  const body  = document.getElementById('ann-body').value.trim();
+  if (!title || !body) return alert('Enter a title and message.');
+  await api.post('/api/announcement', { title, body, priority: document.getElementById('ann-priority').value, poolId: Number(activePoolId) });
+  document.getElementById('ann-title').value = '';
+  document.getElementById('ann-body').value = '';
+  await refresh();
+  renderBoard();
+}
+async function deleteAnnouncement(id) {
+  await api.post('/api/announcement/delete', { id });
+  await refresh();
+  renderBoard();
+}
+async function addResource() {
+  const title = document.getElementById('res-title').value.trim();
+  if (!title) return alert('Enter a title.');
+  await api.post('/api/resource', { title, desc: document.getElementById('res-desc').value, url: document.getElementById('res-url').value, type: document.getElementById('res-type').value, poolId: Number(activePoolId) });
+  document.getElementById('res-title').value = '';
+  document.getElementById('res-desc').value = '';
+  document.getElementById('res-url').value = '';
+  await refresh();
+  renderBoard();
+}
+async function deleteResource(id) {
+  await api.post('/api/resource/delete', { id });
+  await refresh();
+  renderBoard();
+}
+
+// ── Reports ────────────────────────────────────────────────────────────────
+async function renderReports() {
+  await refresh();
+  const emps = poolEmployees();
+  document.getElementById('rpt-hours').innerHTML = emps.length ? emps.map(emp=>{
+    const total = DB.punches.filter(p=>String(p.empId)===String(emp.id)&&p.hours&&inPool(p)).reduce((s,p)=>s+parseFloat(p.hours),0);
+    return `<tr><td>${emp.name}</td><td>${total.toFixed(2)} hrs</td></tr>`;
+  }).join('') : `<tr><td colspan="2" class="empty">No data.</td></tr>`;
+  const logs = DB.chemicals.filter(inPool);
+  const pass=logs.filter(r=>r.status==='pass').length;
+  const warn=logs.filter(r=>r.status==='warn').length;
+  const fail=logs.filter(r=>r.status==='fail').length;
+  const total=logs.length||1;
+  document.getElementById('rpt-compliance').innerHTML=`
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+      <div><span class="badge badge-pass">PASS</span> ${pass} (${Math.round(pass/total*100)}%)</div>
+      <div><span class="badge badge-warn">WARN</span> ${warn} (${Math.round(warn/total*100)}%)</div>
+      <div><span class="badge badge-fail">FAIL</span> ${fail} (${Math.round(fail/total*100)}%)</div>
+    </div>
+    <div style="background:#f1f5f9;border-radius:6px;overflow:hidden;height:12px;display:flex">
+      <div style="background:var(--green);width:${pass/total*100}%"></div>
+      <div style="background:var(--yellow);width:${warn/total*100}%"></div>
+      <div style="background:var(--red);width:${fail/total*100}%"></div>
+    </div>`;
+  if (!document.getElementById('rpt-from').value) {
+    const d=new Date(); d.setDate(d.getDate()-30);
+    document.getElementById('rpt-from').value=d.toISOString().slice(0,10);
+    document.getElementById('rpt-to').value=today();
+  }
+}
+async function exportCSV() {
+  const from=document.getElementById('rpt-from').value;
+  const to=document.getElementById('rpt-to').value;
+  const logs=DB.chemicals.filter(r=>inPool(r)&&r.date>=from&&r.date<=to);
+  const header='Date,Time,Type,Chlorine (ppm),pH,Combined Cl,By,Status,Notes\n';
+  const rows=logs.map(r=>[r.date,r.time,r.type,r.cl,r.ph,r.ccl??'',r.by,r.status,`"${(r.notes||'').replace(/"/g,'""')}"`].join(',')).join('\n');
+  const blob=new Blob([header+rows],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`pool-chemical-log-${from}-to-${to}.csv`; a.click();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async function init() {
+  document.getElementById('chem-date').value = today();
+  document.getElementById('chem-time').value = nowTime();
+  document.getElementById('sched-date').value = today();
+  document.getElementById('brk-date').value = today();
+  await refresh();
+  renderChemicals();
+  buildQR();
+})();
+</script>
+</body>
+</html>

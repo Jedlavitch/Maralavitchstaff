@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-import json, os, socket
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import json, os, socket, threading
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from datetime import datetime
+
+# Serializes writes so concurrent requests can't corrupt or lose each other's
+# updates once the server handles requests on multiple threads.
+_DATA_LOCK = threading.RLock()
 
 PORT = int(os.environ.get('PORT', 8765))
 
@@ -51,16 +55,69 @@ def get_local_ip():
         pass
     return '127.0.0.1'
 
+def default_data():
+    return {'employees': [], 'chemicals': [], 'shifts': [], 'punches': [], 'announcements': [], 'resources': [], 'pool_status': 'open', 'shift_requests': [], 'notifications': [], 'shift_confirmations': {}, 'pools': [], 'breaks': []}
+
+# Entities that belong to a single pool and carry a poolId
+POOL_SCOPED = ('shifts', 'chemicals', 'punches', 'announcements', 'resources', 'shift_requests', 'notifications', 'breaks')
+
+def migrate(data):
+    """Bring older single-pool data forward to the multi-pool model. Idempotent —
+    returns True only if something actually changed (so callers can persist once)."""
+    changed = False
+    pools = data.get('pools')
+    if not pools:
+        # Create a starter pool, inheriting the old global status if present
+        starter = {
+            'id': int(datetime.now().timestamp() * 1000),
+            'name': 'Maralavitch Pool',
+            'address': '',
+            'status': data.get('pool_status', 'open'),
+            'created': datetime.now().strftime('%Y-%m-%d'),
+        }
+        data['pools'] = [starter]
+        pools = data['pools']
+        changed = True
+    default_pid = pools[0]['id']
+    for pool in pools:
+        if 'status' not in pool:
+            pool['status'] = 'open'; changed = True
+        if 'address' not in pool:
+            pool['address'] = ''; changed = True
+    # Employees get a list of assigned pools
+    for e in data.get('employees', []):
+        if not isinstance(e.get('poolIds'), list) or not e.get('poolIds'):
+            e['poolIds'] = [default_pid]; changed = True
+    # Tag any untagged pool-scoped records with the default pool
+    for key in POOL_SCOPED:
+        for item in data.get(key, []):
+            if isinstance(item, dict) and not item.get('poolId'):
+                item['poolId'] = default_pid; changed = True
+    return changed
+
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE) as f:
-            return json.load(f)
-    return {'employees': [], 'chemicals': [], 'shifts': [], 'punches': [], 'announcements': [], 'resources': [], 'pool_status': 'open', 'shift_requests': []}
+            data = json.load(f)
+    else:
+        data = default_data()
+    # Ensure all expected top-level keys exist
+    for k, v in default_data().items():
+        if k not in data:
+            data[k] = v
+    if migrate(data):
+        save_data(data)
+    return data
 
 def save_data(data):
     os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+    # Write to a temp file then atomically replace, so a concurrent reader never
+    # sees a partially written file (which would make the app appear "offline").
+    with _DATA_LOCK:
+        tmp = DATA_FILE + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, DATA_FILE)
 
 def serve_file(handler, path, mime='text/html; charset=utf-8'):
     base = os.path.dirname(__file__)
@@ -108,6 +165,10 @@ class Handler(BaseHTTPRequestHandler):
             serve_file(self, 'worker.html')
         elif p in ('/print-qr', '/print-qr.html'):
             serve_file(self, 'print-qr.html')
+        elif p == '/manifest.json':
+            serve_file(self, 'manifest.json', 'application/manifest+json')
+        elif p == '/sw.js':
+            serve_file(self, 'sw.js', 'application/javascript')
         elif p == '/api/data':
             d = load_data()
             out = dict(d)
@@ -136,6 +197,12 @@ class Handler(BaseHTTPRequestHandler):
             serve_file(self, p)
 
     def do_POST(self):
+        # Hold the data lock across the whole read-modify-write so simultaneous
+        # writes from multiple devices can't overwrite each other.
+        with _DATA_LOCK:
+            self._handle_post()
+
+    def _handle_post(self):
         p = urlparse(self.path).path
         length = int(self.headers.get('Content-Length', 0))
         body = json.loads(self.rfile.read(length)) if length else {}
@@ -158,6 +225,8 @@ class Handler(BaseHTTPRequestHandler):
 
         elif p == '/api/employee':
             body['id'] = ts()
+            if not isinstance(body.get('poolIds'), list):
+                body['poolIds'] = []
             data['employees'].append(body)
             save_data(data)
             self.send_json({'ok': True, 'employee': body})
@@ -166,6 +235,55 @@ class Handler(BaseHTTPRequestHandler):
             data['employees'] = [e for e in data['employees'] if e['id'] != body['id']]
             save_data(data)
             self.send_json({'ok': True})
+
+        elif p == '/api/employee/pools':
+            # Set which pools an employee is staffed at
+            emp_id = str(body.get('empId', ''))
+            emp = next((e for e in data['employees'] if str(e['id']) == emp_id), None)
+            if emp:
+                ids = body.get('poolIds', [])
+                emp['poolIds'] = ids if isinstance(ids, list) else []
+                save_data(data)
+                self.send_json({'ok': True})
+            else:
+                self.send_json({'ok': False, 'error': 'Not found'}, 404)
+
+        elif p == '/api/pool':
+            body['id'] = ts()
+            body.setdefault('status', 'open')
+            body.setdefault('address', '')
+            body.setdefault('created', datetime.now().strftime('%Y-%m-%d'))
+            data.setdefault('pools', []).append(body)
+            save_data(data)
+            self.send_json({'ok': True, 'pool': body})
+
+        elif p == '/api/pool/update':
+            pool = next((x for x in data.get('pools', []) if x['id'] == body.get('id')), None)
+            if pool:
+                for k in ('name', 'address', 'status'):
+                    if k in body:
+                        pool[k] = body[k]
+                save_data(data)
+                self.send_json({'ok': True, 'pool': pool})
+            else:
+                self.send_json({'ok': False, 'error': 'Not found'}, 404)
+
+        elif p == '/api/pool/delete':
+            pid = body.get('id')
+            pools = data.get('pools', [])
+            if len(pools) <= 1:
+                self.send_json({'ok': False, 'error': 'Cannot delete the last pool'}, 400)
+            else:
+                data['pools'] = [x for x in pools if x['id'] != pid]
+                # Cascade-delete everything scoped to that pool
+                for key in POOL_SCOPED:
+                    data[key] = [it for it in data.get(key, []) if it.get('poolId') != pid]
+                # Unassign employees from the removed pool
+                for e in data.get('employees', []):
+                    if isinstance(e.get('poolIds'), list):
+                        e['poolIds'] = [x for x in e['poolIds'] if x != pid]
+                save_data(data)
+                self.send_json({'ok': True})
 
         elif p == '/api/employee/set-password':
             emp_id = str(body.get('empId', ''))
@@ -196,8 +314,70 @@ class Handler(BaseHTTPRequestHandler):
         elif p == '/api/shift':
             body['id'] = ts()
             data['shifts'].append(body)
+            # Create notification for the scheduled employee
+            emp_id = str(body.get('empId', ''))
+            shift_date = body.get('date', '')
+            shift_start = body.get('start', '')
+            shift_end = body.get('end', '')
+            shift_role = body.get('role', '')
+            if emp_id:
+                def _fmt(t):
+                    if not t: return ''
+                    try:
+                        h, m = int(t[:2]), int(t[3:5])
+                        return f"{h%12 or 12}:{m:02d} {'AM' if h<12 else 'PM'}"
+                    except Exception:
+                        return t
+                try:
+                    from datetime import datetime as _dt
+                    date_lbl = _dt.strptime(shift_date, '%Y-%m-%d').strftime('%a %b %-d')
+                except Exception:
+                    date_lbl = shift_date
+                notif = {
+                    'id': ts() + 1,
+                    'empId': emp_id,
+                    'poolId': body.get('poolId'),
+                    'title': '📅 New Shift Added',
+                    'message': f"You've been scheduled: {date_lbl}, {_fmt(shift_start)} – {_fmt(shift_end)} ({shift_role})",
+                    'read': False,
+                    'ts': datetime.now().strftime('%Y-%m-%d %H:%M')
+                }
+                data.setdefault('notifications', []).insert(0, notif)
             save_data(data)
             self.send_json({'ok': True, 'shift': body})
+
+        elif p == '/api/shifts/bulk':
+            # Create many shifts at once (one person, multiple days), with a single
+            # summary notification instead of one per shift.
+            shifts = body.get('shifts', [])
+            if not shifts:
+                self.send_json({'ok': False, 'error': 'No shifts provided'}, 400)
+            else:
+                base = ts()
+                created = []
+                for i, s in enumerate(shifts):
+                    s['id'] = base + i
+                    data['shifts'].append(s)
+                    created.append(s)
+                emp_id = str(created[0].get('empId', ''))
+                if emp_id:
+                    def _fmtd(ds):
+                        try:
+                            return datetime.strptime(ds, '%Y-%m-%d').strftime('%b %-d')
+                        except Exception:
+                            return ds
+                    dates = sorted(s.get('date', '') for s in created)
+                    n = len(created)
+                    span = _fmtd(dates[0]) if n == 1 else f"{_fmtd(dates[0])} – {_fmtd(dates[-1])}"
+                    data.setdefault('notifications', []).insert(0, {
+                        'id': base + len(created) + 1,
+                        'empId': emp_id, 'poolId': created[0].get('poolId'),
+                        'title': '📅 New Shifts Scheduled',
+                        'message': f"You've been scheduled for {n} shift{'s' if n != 1 else ''} ({span}).",
+                        'read': False, 'ts': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                    })
+                save_data(data)
+                self.send_json({'ok': True, 'count': len(created)})
 
         elif p == '/api/shift/delete':
             data['shifts'] = [s for s in data['shifts'] if s['id'] != body['id']]
@@ -220,6 +400,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({'action': 'out', 'punch': open_p})
             else:
                 punch = {'id': ts(), 'empId': emp_id, 'empName': body.get('empName', ''),
+                         'poolId': body.get('poolId'),
                          'date': today_str, 'in': now_time, 'out': None, 'hours': None}
                 data['punches'].append(punch)
                 save_data(data)
@@ -236,6 +417,7 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 punch = {
                     'id': ts(), 'empId': emp_id, 'empName': body.get('empName', ''),
+                    'poolId': body.get('poolId'),
                     'date': today_str, 'in': now_time, 'out': None, 'hours': None,
                     'checkin_answers': body.get('answers', {}),
                     'checkin_flags': body.get('flags', [])
@@ -287,7 +469,13 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({'ok': True})
 
         elif p == '/api/pool_status':
-            data['pool_status'] = body.get('status', 'open')
+            # Per-pool status; falls back to the global field if no pool given
+            pid = body.get('poolId')
+            pool = next((x for x in data.get('pools', []) if x['id'] == pid), None)
+            if pool:
+                pool['status'] = body.get('status', 'open')
+            else:
+                data['pool_status'] = body.get('status', 'open')
             save_data(data)
             self.send_json({'ok': True})
 
@@ -303,7 +491,33 @@ class Handler(BaseHTTPRequestHandler):
             req_id = body.get('id')
             req = next((r for r in data.get('shift_requests', []) if r['id'] == req_id), None)
             if req:
-                req['status'] = body.get('status', req['status'])
+                new_status = body.get('status', req['status'])
+                req['status'] = new_status
+                # Notify the employee when a request is approved or denied
+                emp_id = str(req.get('empId', ''))
+                if emp_id and new_status in ('approved', 'denied'):
+                    req_type = req.get('type', 'shift')
+                    req_date = req.get('date', '')
+                    try:
+                        date_lbl = datetime.strptime(req_date, '%Y-%m-%d').strftime('%a %b %-d')
+                    except Exception:
+                        date_lbl = req_date
+                    if new_status == 'approved':
+                        title = '✅ Shift Request Approved' if req_type == 'shift' else '✅ Day Off Approved'
+                        msg   = f"Your shift request for {date_lbl} has been approved." if req_type == 'shift' else f"Your day off request for {date_lbl} was approved."
+                    else:
+                        title = '❌ Shift Request Denied' if req_type == 'shift' else '❌ Day Off Denied'
+                        msg   = f"Your shift request for {date_lbl} was not approved." if req_type == 'shift' else f"Your day off request for {date_lbl} was not approved."
+                    notif = {
+                        'id': int(datetime.now().timestamp() * 1000) + 2,
+                        'empId': emp_id,
+                        'poolId': req.get('poolId'),
+                        'title': title,
+                        'message': msg,
+                        'read': False,
+                        'ts': datetime.now().strftime('%Y-%m-%d %H:%M')
+                    }
+                    data.setdefault('notifications', []).insert(0, notif)
                 save_data(data)
                 self.send_json({'ok': True})
             else:
@@ -311,6 +525,123 @@ class Handler(BaseHTTPRequestHandler):
 
         elif p == '/api/shift-request/delete':
             data['shift_requests'] = [r for r in data.get('shift_requests', []) if r['id'] != body['id']]
+            save_data(data)
+            self.send_json({'ok': True})
+
+        elif p == '/api/notification/read':
+            emp_id = str(body.get('empId', ''))
+            for n in data.get('notifications', []):
+                if str(n.get('empId', '')) == emp_id:
+                    n['read'] = True
+            save_data(data)
+            self.send_json({'ok': True})
+
+        elif p == '/api/notification/send':
+            # Management → staff. target = 'all' (everyone staffed at the pool) or an employee id
+            pool_id = body.get('poolId')
+            target = str(body.get('target', 'all'))
+            title = (body.get('title') or '📢 Message from Management').strip()
+            message = (body.get('message') or '').strip()
+            if not message:
+                self.send_json({'ok': False, 'error': 'Message is empty'}, 400)
+            else:
+                if target == 'all':
+                    recipients = [e for e in data.get('employees', [])
+                                  if pool_id is None or pool_id in (e.get('poolIds') or [])]
+                else:
+                    recipients = [e for e in data.get('employees', []) if str(e['id']) == target]
+                base = int(datetime.now().timestamp() * 1000)
+                stamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+                for i, e in enumerate(recipients):
+                    data.setdefault('notifications', []).insert(0, {
+                        'id': base + i,
+                        'empId': str(e['id']),
+                        'poolId': pool_id,
+                        'title': title,
+                        'message': message,
+                        'read': False,
+                        'ts': stamp,
+                        'from_mgmt': True,
+                    })
+                save_data(data)
+                self.send_json({'ok': True, 'sent': len(recipients)})
+
+        elif p == '/api/shift/confirm':
+            emp_id = str(body.get('empId', ''))
+            shift_id = body.get('shiftId')
+            note = body.get('note', '')
+            key = f"{emp_id}_{shift_id}"
+            data.setdefault('shift_confirmations', {})[key] = {
+                'confirmed': True,
+                'ts': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                'note': note
+            }
+            save_data(data)
+            self.send_json({'ok': True})
+
+        elif p == '/api/break':
+            # Only managers and staffers may assign breaks
+            assigner = next((e for e in data['employees'] if str(e['id']) == str(body.get('assignedBy', ''))), None)
+            if not assigner or assigner.get('role') not in ('Manager', 'Staffer'):
+                self.send_json({'ok': False, 'error': 'Only managers and staffers can assign breaks.'}, 403)
+            else:
+                body['id'] = ts()
+                body['assignedByName'] = assigner.get('name', '')
+                body.setdefault('status', 'scheduled')
+                body.setdefault('startedAt', None)
+                body.setdefault('endedAt', None)
+                body.setdefault('actualMinutes', None)
+                data.setdefault('breaks', []).append(body)
+                # Notify the employee
+                emp_id = str(body.get('empId', ''))
+                if emp_id:
+                    def _fmt(t):
+                        if not t: return ''
+                        try:
+                            h, m = int(t[:2]), int(t[3:5])
+                            return f"{h%12 or 12}:{m:02d} {'AM' if h<12 else 'PM'}"
+                        except Exception:
+                            return t
+                    dur = body.get('duration', '')
+                    when = body.get('start')
+                    msg = f"You have a {dur}-minute break" + (f" at {_fmt(when)}" if when else "") + " today."
+                    data.setdefault('notifications', []).insert(0, {
+                        'id': ts() + 1, 'empId': emp_id, 'poolId': body.get('poolId'),
+                        'title': '☕ Break Scheduled', 'message': msg, 'read': False,
+                        'ts': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                    })
+                save_data(data)
+                self.send_json({'ok': True, 'break': body})
+
+        elif p == '/api/break/start':
+            br = next((b for b in data.get('breaks', []) if b['id'] == body.get('id')), None)
+            if br:
+                br['status'] = 'active'
+                br['startedAt'] = datetime.now().strftime('%H:%M')
+                save_data(data)
+                self.send_json({'ok': True, 'break': br})
+            else:
+                self.send_json({'ok': False, 'error': 'Not found'}, 404)
+
+        elif p == '/api/break/end':
+            br = next((b for b in data.get('breaks', []) if b['id'] == body.get('id')), None)
+            if br:
+                br['status'] = 'completed'
+                br['endedAt'] = datetime.now().strftime('%H:%M')
+                if br.get('startedAt'):
+                    try:
+                        a = datetime.strptime(br['startedAt'], '%H:%M')
+                        z = datetime.strptime(br['endedAt'], '%H:%M')
+                        br['actualMinutes'] = max(0, round((z - a).seconds / 60))
+                    except Exception:
+                        pass
+                save_data(data)
+                self.send_json({'ok': True, 'break': br})
+            else:
+                self.send_json({'ok': False, 'error': 'Not found'}, 404)
+
+        elif p == '/api/break/delete':
+            data['breaks'] = [b for b in data.get('breaks', []) if b['id'] != body['id']]
             save_data(data)
             self.send_json({'ok': True})
 
@@ -335,4 +666,8 @@ if __name__ == '__main__':
     ip = get_local_ip()
     print(f'Pool Manager → http://localhost:{PORT}')
     print(f'Guard QR URL → http://{ip}:{PORT}/quicklog')
-    HTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
+    # Threaded server: handle many devices at once so the app never appears
+    # "offline" just because another request is in flight.
+    server = ThreadingHTTPServer(('0.0.0.0', PORT), Handler)
+    server.daemon_threads = True
+    server.serve_forever()

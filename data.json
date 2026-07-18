@@ -1,0 +1,598 @@
+{
+  "employees": [
+    {
+      "name": "Jack Edlavitch",
+      "role": "Manager",
+      "phone": "2023209020",
+      "id": 1781111821144,
+      "password": "1111",
+      "poolIds": [
+        1781142303038
+      ]
+    },
+    {
+      "name": "John Doe",
+      "role": "Lifeguard",
+      "phone": "",
+      "id": 1781113250677,
+      "poolIds": [
+        1781142303038
+      ]
+    },
+    {
+      "name": "Charlie Edlavitch",
+      "role": "Lifeguard",
+      "phone": "",
+      "id": 1781113261168,
+      "poolIds": [
+        1781142303038
+      ]
+    },
+    {
+      "name": "Jose Maderno",
+      "role": "Maintenance",
+      "phone": "",
+      "poolIds": [
+        1781142303038
+      ],
+      "password": "2222",
+      "id": 1781144308652
+    },
+    {
+      "name": "House Owner *Testing*",
+      "role": "Owner",
+      "phone": "",
+      "poolIds": [
+        1781142303038
+      ],
+      "id": 1781548440129
+    }
+  ],
+  "chemicals": [
+    {
+      "date": "2026-06-15",
+      "time": "14:30",
+      "type": "hourly",
+      "cl": 1.2,
+      "ph": 7.5,
+      "ccl": null,
+      "by": "Jack Edlavitch",
+      "poolId": 1781142303038,
+      "notes": "",
+      "id": 1781548249313,
+      "status": "pass"
+    },
+    {
+      "date": "2026-06-10",
+      "time": "23:05",
+      "type": "hourly",
+      "cl": 1.2,
+      "ph": 7.5,
+      "ccl": null,
+      "by": "John Doe",
+      "poolId": 1781142303038,
+      "notes": "",
+      "id": 1781147104419,
+      "status": "pass"
+    },
+    {
+      "date": "2026-06-10",
+      "time": "14:38",
+      "type": "hourly",
+      "cl": 1.2,
+      "ph": 7.6,
+      "ccl": null,
+      "by": "Jack Edlavitch",
+      "notes": "",
+      "id": 1781116738274,
+      "status": "pass",
+      "poolId": 1781142303038
+    },
+    {
+      "date": "2026-06-10",
+      "time": "13:17",
+      "type": "hourly",
+      "cl": 1.2,
+      "ph": 7.4,
+      "ccl": null,
+      "by": "Jack Edlavitch",
+      "notes": "Green",
+      "id": 1781111846491,
+      "status": "pass",
+      "poolId": 1781142303038
+    }
+  ],
+  "shifts": [
+    {
+      "empId": "1781113250677",
+      "empName": "John Doe",
+      "date": "2026-06-11",
+      "start": "10:00",
+      "end": "14:45",
+      "role": "Lifeguard",
+      "id": 1781113293426,
+      "poolId": 1781142303038
+    },
+    {
+      "empId": "1781113261168",
+      "empName": "Charlie Edlavitch",
+      "date": "2026-06-10",
+      "start": "14:00",
+      "end": "20:00",
+      "role": "Lifeguard",
+      "id": 1781113383659,
+      "poolId": 1781142303038
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-10",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008946
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-11",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008947
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-12",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008948
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-13",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008949
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-14",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008950
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-15",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008951
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-16",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008952
+    },
+    {
+      "empId": "1781144308652",
+      "empName": "Jose Maderno",
+      "date": "2026-06-17",
+      "start": "13:00",
+      "end": "15:00",
+      "role": "Maintenance",
+      "poolId": 1781142303038,
+      "id": 1781145008953
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-10",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874988
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-11",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874989
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-12",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874990
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-13",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874991
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-14",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874992
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-15",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874993
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-16",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874994
+    },
+    {
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-17",
+      "start": "10:00",
+      "end": "20:00",
+      "role": "Manager",
+      "poolId": 1781142303038,
+      "id": 1781145874995
+    }
+  ],
+  "punches": [
+    {
+      "id": 1781113787182,
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-10",
+      "in": "13:49",
+      "out": "14:33",
+      "hours": 0.73,
+      "checkin_answers": {
+        "water_clarity": "clear",
+        "debris_in_water": "none",
+        "deck_condition": "clean",
+        "life_ring": "yes",
+        "reach_pole": "yes",
+        "first_aid": "stocked",
+        "ci_notes": ""
+      },
+      "checkin_flags": [],
+      "poolId": 1781142303038
+    },
+    {
+      "id": 1781116422390,
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "date": "2026-06-10",
+      "in": "14:33",
+      "out": "15:11",
+      "hours": 0.63,
+      "checkout_answers": {
+        "trash": true,
+        "skimmers": true,
+        "deck": true,
+        "equipment": true,
+        "chemicals": true,
+        "restrooms": true,
+        "co_notes": ""
+      },
+      "checkout_photo": "photo_1781118677285.jpg",
+      "checkout_flags": [],
+      "poolId": 1781142303038
+    },
+    {
+      "id": 1781143004659,
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "poolId": 1781142303038,
+      "date": "2026-06-10",
+      "in": "21:56",
+      "out": "22:06",
+      "hours": 0.17,
+      "checkin_answers": {
+        "water_clarity": "clear",
+        "debris": "minor",
+        "deck": "clean",
+        "life_ring": "yes",
+        "reach_pole": "yes",
+        "first_aid": "low",
+        "ci_notes": "Supervisor needs to come by and add chemicals"
+      },
+      "checkin_flags": [
+        "Debris in pool: minor",
+        "First aid kit: low"
+      ],
+      "checkout_answers": {
+        "trash": true,
+        "skimmers": true,
+        "deck_clean": true,
+        "equipment": true,
+        "co_notes": ""
+      },
+      "checkout_photo": "photo_1781143568846.jpg",
+      "checkout_flags": []
+    },
+    {
+      "id": 1781143589839,
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "poolId": 1781142303038,
+      "date": "2026-06-10",
+      "in": "22:06",
+      "out": "22:35",
+      "hours": 0.48,
+      "checkin_answers": {
+        "water_clarity": "hazy",
+        "debris": "significant",
+        "life_ring": "yes",
+        "deck": "wet",
+        "reach_pole": "no",
+        "first_aid": "missing",
+        "ci_notes": ""
+      },
+      "checkin_flags": [
+        "Water clarity: hazy",
+        "Debris in pool: significant",
+        "Deck condition: wet",
+        "Reach pole MISSING",
+        "First aid kit: missing"
+      ],
+      "checkout_answers": {
+        "trash": true,
+        "skimmers": true,
+        "deck_clean": true,
+        "equipment": true,
+        "chemicals": true,
+        "co_notes": ""
+      },
+      "checkout_photo": "photo_1781145353965.jpg",
+      "checkout_flags": []
+    },
+    {
+      "id": 1781147086928,
+      "empId": "1781113250677",
+      "empName": "John Doe",
+      "poolId": 1781142303038,
+      "date": "2026-06-10",
+      "in": "23:04",
+      "out": "23:05",
+      "hours": 0.02,
+      "checkin_answers": {
+        "water_clarity": "clear",
+        "debris": "none",
+        "deck": "clean",
+        "life_ring": "yes",
+        "reach_pole": "yes",
+        "first_aid": "missing",
+        "ci_notes": ""
+      },
+      "checkin_flags": [
+        "First aid kit: missing"
+      ],
+      "checkout_answers": {
+        "trash": true,
+        "skimmers": true,
+        "deck_clean": true,
+        "equipment": true,
+        "co_notes": ""
+      },
+      "checkout_photo": "photo_1781147149986.jpg",
+      "checkout_flags": []
+    },
+    {
+      "id": 1781548215831,
+      "empId": "1781111821144",
+      "empName": "Jack Edlavitch",
+      "poolId": 1781142303038,
+      "date": "2026-06-15",
+      "in": "14:30",
+      "out": null,
+      "hours": null,
+      "checkin_answers": {
+        "water_clarity": "clear",
+        "debris": "none",
+        "deck": "clean",
+        "life_ring": "yes",
+        "reach_pole": "yes",
+        "first_aid": "stocked",
+        "ci_notes": ""
+      },
+      "checkin_flags": []
+    }
+  ],
+  "pool_status": "limited",
+  "announcements": [
+    {
+      "title": "Lifeguard Health & Well-Being",
+      "body": "Hey Team,\n\nAs lifeguards, your primary job is to keep our patrons safe\u2014but you can\u2019t look out for others if you aren\u2019t looking out for yourself first! The heat, sun, and constant alertness can take a heavy toll.\n\nPlease make sure you are practicing good self-care during your shifts:\n\nHydrate Constantly: Don't wait until you're thirsty. Keep a water bottle on your stand and drink throughout the day.\n\nProtect Your Skin: Reapply sunscreen (SPF 30+) every two hours, and utilize your umbrellas, hats, and polarized sunglasses to block UV rays.\n\nStay Sharp on Breaks: Use your rotation breaks to cool down, get into the shade, stretch, and grab a quick, nutritious snack to keep your energy up.\n\nSpeak Up: If you are feeling dizzy, overheated, or excessively fatigued, let a supervisor or a teammate know immediately. We always have your back.\n\nThank you for all your hard work and dedication to keeping our pool safe. Let\u2019s have a great, healthy season!",
+      "priority": "info",
+      "id": 1781118510989,
+      "posted": "2026-06-10 15:08",
+      "poolId": 1781142303038
+    }
+  ],
+  "resources": [
+    {
+      "title": "Emergency Procedures",
+      "desc": "EAP located in Kitchen",
+      "url": "",
+      "type": "procedure",
+      "id": 1781118479349,
+      "poolId": 1781142303038
+    }
+  ],
+  "shift_requests": [],
+  "shift_confirmations": {
+    "1781111821144_1781113307820": {
+      "confirmed": true,
+      "ts": "2026-06-10 16:12",
+      "note": ""
+    },
+    "1781111821144_1781113354053": {
+      "confirmed": true,
+      "ts": "2026-06-10 16:12",
+      "note": ""
+    },
+    "1781111821144_1781119867820": {
+      "confirmed": true,
+      "ts": "2026-06-10 16:12",
+      "note": ""
+    },
+    "1781111821144_1781113358789": {
+      "confirmed": true,
+      "ts": "2026-06-10 16:12",
+      "note": ""
+    },
+    "1781111821144_1781145874988": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874989": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874990": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874991": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874992": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874993": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874994": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781111821144_1781145874995": {
+      "confirmed": true,
+      "ts": "2026-06-10 22:45",
+      "note": ""
+    },
+    "1781113250677_1781113293426": {
+      "confirmed": true,
+      "ts": "2026-06-10 23:04",
+      "note": ""
+    }
+  },
+  "notifications": [
+    {
+      "id": 1781146895330,
+      "empId": "1781113250677",
+      "poolId": 1781142303038,
+      "title": "\ud83d\udcc5 New Shifts Scheduled",
+      "message": "You've been scheduled for 1 shift (Jun 11).",
+      "read": false,
+      "ts": "2026-06-10 23:01"
+    },
+    {
+      "id": 1781143734487,
+      "empId": "1781113261168",
+      "poolId": 1781142303038,
+      "title": "\ud83d\udce2 Message from Management",
+      "message": "welcome to the app",
+      "read": false,
+      "ts": "2026-06-10 22:08",
+      "from_mgmt": true
+    },
+    {
+      "id": 1781143734486,
+      "empId": "1781113250677",
+      "poolId": 1781142303038,
+      "title": "\ud83d\udce2 Message from Management",
+      "message": "welcome to the app",
+      "read": false,
+      "ts": "2026-06-10 22:08",
+      "from_mgmt": true
+    },
+    {
+      "id": 1781143734485,
+      "empId": "1781111821144",
+      "poolId": 1781142303038,
+      "title": "\ud83d\udce2 Message from Management",
+      "message": "welcome to the app",
+      "read": false,
+      "ts": "2026-06-10 22:08",
+      "from_mgmt": true
+    },
+    {
+      "id": 1781124437997,
+      "empId": "1781111821144",
+      "title": "\ud83d\udcc5 New Shift Added",
+      "message": "You've been scheduled: Wed Jun 10, 5:00 PM \u2013 7:00 PM (Staffer)",
+      "read": false,
+      "ts": "2026-06-10 16:47",
+      "poolId": 1781142303038
+    }
+  ],
+  "pools": [
+    {
+      "id": 1781142303038,
+      "name": "Mar-A-Lavitch Pool",
+      "address": "5826 Osceola Road",
+      "status": "open",
+      "created": "2026-06-10"
+    }
+  ],
+  "breaks": []
+}
